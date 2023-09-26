@@ -1,0 +1,46 @@
+server:
+  port: 9000
+
+spring:
+  profiles:
+    active: @profile.active@
+  datasource:
+    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+mybatis-plus:
+  type-aliases-package: com.vo,com.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+hello:
+  age: 100
+  name: oOo
+
+test:
+  value: true
+
+jetcache:
+  areaInCacheName: false
+  hidePackages: com
+  remote:
+    default:
+      type: redis
+      port: 6379
+      host: localhost
+      keyConvertor: fastjson
+      expireAfterWriteInMillis: 180000
+      valueEncoder: java
+      valueDecoder: java
+      poolConfig:
+        maxTotal: 20
+
+---
+response-body:
+  base-package: com
+...

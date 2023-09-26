@@ -1,0 +1,39 @@
+<?xm1 version="1. B" encoding= "UTF-8"?>
+<configuration xmlns="http://logging.apache.org/log4j/2.0/config">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{HH:mm:ss.SSS} %5level [%t] %logger - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ch.qos.logback" level="error">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.zaxxer" level="error">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.alibaba" level="error">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.baomidou" level="error">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.netflix" level="error">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com" level="debug"
+        additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <root level="ERROR">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
