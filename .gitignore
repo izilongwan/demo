@@ -32,7 +32,6 @@ build/
 .DS_Store
 .mvn
 target
-src/test
 mvnw
 mvnw.cmd
 logs
