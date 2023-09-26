@@ -1,36 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.demo.mapper.CarMapper">
-    <select id="selectManuFacturers2" resultMap="manufacturerMap2">
-        SELECT
-        <include refid="manuFactureRef" />
-        FROM manufacturer m
-            JOIN (car c, color c1)
-            ON (m.m_id, c.color_id) = (c.manufacturer_id, c1.id)
-        ORDER BY id, c_id DESC
-        ;
-    </select>
+    <select id="selectManuFacturers2" resultMap="manufacturerMap2"> SELECT <include
+            refid="manuFactureRef" /> FROM manufacturer m JOIN (car c, color c1) ON (m.m_id,
+        c.color_id) = (c.manufacturer_id, c1.id) ORDER BY id, c_id DESC ; </select>
 
-    <select id="selectManuFacturers" resultMap="manufacturerMap">
-        SELECT * FROM manufacturer;
-    </select>
+    <select id="selectManuFacturers" resultMap="manufacturerMap"> SELECT * FROM manufacturer; </select>
 
-    <select id="selectCarsByM" resultType="Car">
-        SELECT  car.*,
-                c.name_cn color_name_cn
-        FROM car
-            JOIN color c
-            ON (car.manufacturer_id, car.color_id) = (#{mid}, c.id);
-    </select>
+    <select id="selectCarsByM" resultType="Car"> SELECT car.*, c.name_cn color_name_cn FROM car JOIN
+        color c ON (car.manufacturer_id, car.color_id) = (#{mid}, c.id); </select>
 
-    <select id="selectCarMaxByM" resultType="Car">
-        SELECT *
-        FROM CAR
-        WHERE manufacturer_id = #{id}
-        ORDER BY VALUE DESC
-        LIMIT 1
-        ;
-    </select>
+    <select id="selectCarMaxByM" resultType="Car"> SELECT * FROM CAR WHERE manufacturer_id = #{id}
+        ORDER BY VALUE DESC LIMIT 1 ; </select>
 
     <resultMap id="manufacturerMap" type="Manufacturer">
         <id column="id" property="id" />
@@ -69,14 +50,7 @@
         <result column="color_id" property="colorId" />
     </resultMap>
 
-    <sql id="manuFactureRef">
-         m.*
-        ,c.id        c_id
-        ,c.value     c_value
-        ,c.name      c_name
-        ,c.lang      c_lang
-        ,c.color_id  c_color_id
-        ,c1.name_cn  c_color_name_cn
-    </sql>
+    <sql id="manuFactureRef"> m.* ,c.id c_id ,c.value c_value ,c.name c_name ,c.lang c_lang
+        ,c.color_id c_color_id ,c1.name_cn c_color_name_cn </sql>
 
 </mapper>

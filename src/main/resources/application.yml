@@ -43,8 +43,13 @@ jetcache:
         maxTotal: 20
 
 ---
+<<<<<<< HEAD
 web-config:
   result-body:
     base-package: com
     path: /oauth/**
+=======
+response-body:
+  base-package: com
+>>>>>>> feat: ✨ 初始化demo
 ...

@@ -69,15 +69,31 @@
             <version>1.0.0</version>
         </dependency>
 
+        <
+        <
+        <
+        <
+        <
+        <
+        < HEAD
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
+        =======
+        >>>>>>> feat: ✨ 初始化demo
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <
+                <
+                <
+                <
+                <
+                <
+                < HEAD
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
@@ -91,8 +107,12 @@
             <!-- <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin> -->
-        </plugins>
+            </plugin> --> ======= <groupId>org.springframework.boot</groupId>
+                <artifactId>
+            spring-boot-maven-plugin</artifactId>
+                <version>2.3.12.RELEASE</version>
+            </plugin>
+            >>>>>>> feat: ✨ 初始化demo </plugins>
     </build>
 
     <profiles>
