@@ -50,25 +50,17 @@
         <result column="color_id" property="colorId" />
     </resultMap>
 
-    <
-    <
-    <
-    <
-    <
-    <
-    < HEAD
     <sql id="manuFactureRef"> m.* ,c.id c_id ,c.value c_value ,c.name c_name ,c.lang c_lang
-        ,c.color_id c_color_id ,c1.name_cn c_color_name_cn </sql>
-    =======
+        ,c.color_id c_color_id ,c1.name_cn c_color_name_cn
+    </sql>
     <sql id="manuFactureRef">
         m.*
-        ,c.id c_id
+        ,c.id c_ids
         ,c.value c_value
         ,c.name c_name
         ,c.lang c_lang
         ,c.color_id c_color_id
         ,c1.name_cn c_color_name_cn
     </sql>
-    >>>>>>> 292f264771315168e94c05d81d31240be7387a29
 
 </mapper>

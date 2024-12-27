@@ -11,7 +11,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.annotation.CurrentUserAnno;
 import com.entity.User;
-import com.mico.app.common.util.HttpUtil;
+import com.mico.app.common.util.HttpRequestUtil;
 
 @Component
 public class CurrentUserResolver implements HandlerMethodArgumentResolver {
@@ -29,7 +29,7 @@ public class CurrentUserResolver implements HandlerMethodArgumentResolver {
                         NativeWebRequest webRequest,
                         WebDataBinderFactory binderFactory) throws Exception {
 
-                return HttpUtil.getRequest()
+                return HttpRequestUtil.getRequest()
                                 .map(o -> User.builder()
                                                 .name(o.getHeader("x-name"))
                                                 .age(Integer.valueOf(o.getHeader("x-age")))
