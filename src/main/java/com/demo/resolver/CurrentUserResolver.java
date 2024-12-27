@@ -10,7 +10,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.demo.annotation.CurrentUserAnno;
-import com.demo.entity.User;
+import com.demo.pojo.entity.User;
 import com.mico.app.common.util.HttpRequestUtil;
 
 @Component

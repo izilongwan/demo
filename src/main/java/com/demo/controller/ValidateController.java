@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.demo.entity.User;
-import com.demo.vo.CarVO;
+import com.demo.pojo.entity.User;
+import com.demo.pojo.vo.CarVO;
 
 @RestController
 @Validated

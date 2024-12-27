@@ -1,4 +1,4 @@
-package com.demo.entity;
+package com.demo.pojo.entity;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;

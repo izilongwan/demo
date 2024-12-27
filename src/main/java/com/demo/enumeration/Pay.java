@@ -2,31 +2,34 @@ package com.demo.enumeration;
 
 import com.demo.service.PayService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public enum Pay implements PayService {
     CASH_PAY() {
         @Override
         public void pay(String orderId) {
+            // super.pay(orderId);
+            log.debug("cash pay orderId: {}", orderId);
+        }
+    },
+    ALI_PAY() {
+        @Override
+        public void pay(String orderId) {
             super.pay(orderId);
         }
     },
-    AliPay() {
+    WECHAT_PAY() {
         @Override
         public void pay(String orderId) {
-            // TODO Auto-generated method stub
-            super.pay(orderId);
-        }
-    },
-    WechatPay() {
-        @Override
-        public void pay(String orderId) {
-            // TODO Auto-generated method stub
             super.pay(orderId);
         }
     };
 
     @Override
     public void pay(String orderId) {
-        throw new UnsupportedOperationException("Unimplemented method 'pay'");
+        log.debug("pay orderId: {}", orderId);
+        System.out.println("adsf");
     }
 
 }

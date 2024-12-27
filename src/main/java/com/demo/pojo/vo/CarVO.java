@@ -1,12 +1,12 @@
-package com.demo.vo;
+package com.demo.pojo.vo;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import com.demo.entity.Order;
 import com.demo.enumeration.Color;
+import com.demo.pojo.entity.Order;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

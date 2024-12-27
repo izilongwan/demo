@@ -12,7 +12,7 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
 
 mybatis-plus:
-  type-aliases-package: com.demo.vo,com.demo.entity
+  type-aliases-package: com.demo.pojo
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
