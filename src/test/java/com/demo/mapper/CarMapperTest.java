@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.demo.pojo.entity.Car;
-import com.demo.pojo.entity.ManuFacturer;
+import com.demo.domain.entity.Car;
+import com.demo.domain.entity.ManuFacturer;
 
 @SpringBootTest
 public class CarMapperTest {

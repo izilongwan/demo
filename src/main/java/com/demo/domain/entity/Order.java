@@ -1,4 +1,4 @@
-package com.demo.pojo.entity;
+package com.demo.domain.entity;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;

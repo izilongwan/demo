@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.demo.annotation.BarAnno;
 import com.demo.annotation.CurrentUserAnno;
+import com.demo.domain.entity.Car;
+import com.demo.domain.entity.ManuFacturer;
+import com.demo.domain.entity.User;
+import com.demo.domain.vo.CarVO;
 import com.demo.enumeration.CarEnum;
 import com.demo.mapper.CarMapper;
-import com.demo.pojo.entity.Car;
-import com.demo.pojo.entity.ManuFacturer;
-import com.demo.pojo.entity.User;
-import com.demo.pojo.vo.CarVO;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 

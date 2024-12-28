@@ -1,4 +1,4 @@
-package com.demo.pojo.entity;
+package com.demo.domain.entity;
 
 import java.time.LocalDateTime;
 

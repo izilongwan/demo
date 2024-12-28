@@ -1,11 +1,11 @@
-package com.demo.pojo.entity;
+package com.demo.domain.vo;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.demo.domain.entity.Order;
 import com.demo.enumeration.Color;
 
 import lombok.AllArgsConstructor;
@@ -13,18 +13,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Builder
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-public class User {
-    @NotEmpty
+@NoArgsConstructor
+public class CarVO {
+    Integer id;
+    @NotBlank
     String name;
-
-    @Max(value = 100)
-    @Min(value = 20)
-    @NotNull
-    Integer age;
+    @NotEmpty
+    String brand;
+    String country;
 
     @Valid
     @NotNull

@@ -1,29 +1,30 @@
-package com.demo.pojo.vo;
+package com.demo.domain.entity;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import com.demo.enumeration.Color;
-import com.demo.pojo.entity.Order;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
-public class CarVO {
-    Integer id;
-    @NotBlank
-    String name;
+@AllArgsConstructor
+public class User {
     @NotEmpty
-    String brand;
-    String country;
+    String name;
+
+    @Max(value = 100)
+    @Min(value = 20)
+    @NotNull
+    Integer age;
 
     @Valid
     @NotNull
