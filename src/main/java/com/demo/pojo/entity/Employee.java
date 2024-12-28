@@ -1,5 +1,7 @@
 package com.demo.pojo.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class Employee {
+    @TableId
     String empId;
     String empName;
     Integer deptId;

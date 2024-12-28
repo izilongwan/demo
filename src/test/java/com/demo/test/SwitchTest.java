@@ -15,4 +15,17 @@ public class SwitchTest {
                 break;
         }
     }
+
+    @Test
+    public void name1() {
+        String key="""
+                s
+                %s
+                %s
+                """.formatted(1,"age");
+
+        String n=switch(key){case"value","s"->"1";default->"d";};
+
+        System.err.println(key);System.out.println(n);
+    }
 }
