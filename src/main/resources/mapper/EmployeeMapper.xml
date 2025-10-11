@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.mapper.EmployeeMapper">
+    <!-- selectIdMap -->
+    <select id="selectIdMap" resultType="Employee"> SELECT * FROM employee; </select>
+
+    <!-- selectDeptMap -->
+    <select id="selectDeptMap" resultMap="EmployeeMap"> SELECT * FROM employee; </select>
+
+    <resultMap type="EmployeeVO" id="EmployeeMap">
+        <id column="dept_id" property="deptId" />
+        <collection property="list" select="selectDeptList" column="{deptId=dept_id}" />
+    </resultMap>
+
+    <select id="selectDeptList" resultType="Employee">
+        SELECT * FROM employee WHERE dept_id = #{deptId}
+    </select>
+</mapper>

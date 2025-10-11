@@ -15,13 +15,13 @@ public class GenericListTest {
         List<? super C> list = new ArrayList<>();
 
         list.add(new C());
-        list.add(new T());
+        list.add(new E());
         System.out.println(list);
 
         // 存放的是C及C的子集，读取的是C及C的父级，不可添加
         List<? extends C> list2 = new ArrayList<C>() {
             {
-                add(new T());
+                add(new E());
                 add(new C());
             }
         };
@@ -49,6 +49,6 @@ class C extends P {
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-class T extends C {
+class E extends C {
     Integer name;
 }

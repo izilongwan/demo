@@ -29,7 +29,6 @@ public enum Pay implements PayService {
     @Override
     public void pay(String orderId) {
         log.debug("pay orderId: {}", orderId);
-        System.out.println("adsf");
     }
 
 }
