@@ -20,15 +20,16 @@ public class SseServiceImpl implements SseService {
     }
 
     private SseRoom getSseRoom(String roomId, String userId) {
-        SseRoom room = null;
+        SseRoom sseRoom = null;
         if (sseRoomMap.containsKey(roomId)) {
-            room = sseRoomMap.get(roomId);
+            sseRoom = sseRoomMap.get(roomId);
         } else if (Objects.nonNull(userId)) {
-            SseRoom sseRoom = new SseRoom();
+            sseRoom = new SseRoom();
             sseRoom.connect(userId);
             sseRoomMap.put(roomId, sseRoom);
         }
-        return room;
+
+        return sseRoom;
     }
 
     @Override
