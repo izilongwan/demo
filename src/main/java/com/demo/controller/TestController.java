@@ -4,9 +4,12 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +51,23 @@ public class TestController {
     @GetMapping("entity")
     public Car entity() {
         return Car.builder().name("Lee").build();
+    }
+
+    @GetMapping("cookie/set/{key}/{value}")
+    public String setCookie(@PathVariable String key, @PathVariable String value, HttpServletResponse response) {
+        Cookie cookie = new Cookie(key, value);
+        cookie.setDomain("localhost");
+        cookie.setPath("/");
+        cookie.setMaxAge(1000 * 60 * 10);
+        // cookie.setSecure(true);
+        // 添加cookie
+        response.addCookie(cookie);
+        return "ok";
+    }
+
+    @GetMapping("cookie/get")
+    public String getCookie(@CookieValue String val) {
+        return val;
     }
 
     @PostMapping("add")
