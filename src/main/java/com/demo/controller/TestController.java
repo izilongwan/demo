@@ -1,6 +1,7 @@
 package com.demo.controller;
 
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import javax.annotation.Resource;
@@ -68,6 +69,26 @@ public class TestController {
     @GetMapping("cookie/get")
     public String getCookie(@CookieValue String val) {
         return val;
+    }
+
+    @GetMapping("boolean/random")
+    public Boolean getBoolean(@RequestParam Boolean bol) {
+        boolean randomBoolean = new Random().nextBoolean();
+        if (randomBoolean) {
+            return bol;
+        }
+        throw new RuntimeException("随机异常");
+    }
+
+    @ApiOperationSupport(author = "lee")
+    @GetMapping("ok.do")
+    public Car ok() {
+        return Car.builder().name("ok.do").build();
+    }
+
+    @GetMapping("get/error")
+    public String getError() {
+        throw new RuntimeException("内部异常");
     }
 
     @PostMapping("add")
