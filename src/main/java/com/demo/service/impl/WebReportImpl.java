@@ -18,7 +18,10 @@ public class WebReportImpl extends
                 Page<WebReport> page = new Page<WebReport>(pageNum, pageSize);
                 return this.lambdaQuery()
                                 .select(
-                                                WebReport::getId, WebReport::getReportName, WebReport::getCreateTime,
+                                                WebReport::getId, WebReport::getReportName, WebReport::getReportType,
+                                                WebReport::getReportFilename, WebReport::getReportMessage,
+                                                WebReport::getReportError,
+                                                WebReport::getCreateTime,
                                                 WebReport::getUpdateTime)
                                 .like(Objects.nonNull(webReport.getReportName()),
                                                 WebReport::getReportName, webReport.getReportName())

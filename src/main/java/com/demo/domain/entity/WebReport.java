@@ -26,6 +26,14 @@ public class WebReport {
 
     String reportContent;
 
+    String reportType;
+
+    String reportFilename;
+
+    String reportMessage;
+
+    String reportError;
+
     @TableField(fill = FieldFill.INSERT)
     LocalDateTime createTime;
 
