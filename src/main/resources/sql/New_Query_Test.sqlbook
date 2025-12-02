@@ -1,0 +1,257 @@
+-- SQLBook: Code
+SELECT * FROM edge
+
+-- SQLBook: Code
+SELECT product, LEFT(ym, 4) y, SUM(amount) s FROM sales_monthly
+GROUP BY product, y WITH ROLLUP
+ORDER BY COALESCE(GROUPING(product)), COALESCE(GROUPING(y)), s DESC
+-- SQLBook: Code
+SELECT
+    product_category
+    ,product_subcategory
+    ,CONCAT_WS('-', product_category, product_subcategory) category
+    , CONCAT(
+        '['
+        , GROUP_CONCAT(DISTINCT JSON_OBJECT('product_name', product_name, 'id', product_id) ORDER BY product_id DESC)
+        , ']'
+    ) products
+FROM products
+GROUP BY product_category, product_subcategory WITH ROLLUP
+-- SQLBook: Code
+PRAGMA table_info(t_set)
+
+SELECT
+    COLUMN_NAME,
+    COLUMN_TYPE,
+    IS_NULLABLE,
+    COLUMN_KEY,
+    COLUMN_DEFAULT,
+    EXTRA
+FROM
+    INFORMATION_SCHEMA.COLUMNS
+WHERE
+    TABLE_SCHEMA = 'test'
+    AND TABLE_NAME = 't_set';
+
+DESC t_set;
+
+SHOW COLUMNS FROM t_set;
+-- SQLBook: Code
+SET @s := '、';
+
+INSERT INTO movies_category(name, class)
+SELECT * FROM (
+    WITH
+        RECURSIVE t(name, class, rest) AS(
+            SELECT
+                name
+                , SUBSTRING_INDEX(class, @s, 1)
+                , CAST(CONCAT(SUBSTR(class, INSTR(class, @s) + 1), @s) AS CHAR)
+            FROM movies
+            UNION ALL
+            SELECT
+                name
+                , SUBSTRING_INDEX(rest, @s, 1)
+                , SUBSTR(rest, INSTR(rest, @s) + 1)
+            FROM t
+            WHERE POSITION(@s IN rest) > 0
+        )
+    SELECT name, class FROM t
+    -- SELECT * FROM t
+) t;
+
+SHOW CREATE TABLE movies;
+
+ALTER TABLE movies MODIFY id INT AUTO_INCREMENT;
+
+DELETE FROM movies WHERE POSITION(@s IN class) = 0;
+SELECT * FROM movies WHERE POSITION(@s IN class) = 0
+
+
+INSERT INTO movies_category(name, class) SELECT name, class FROM movies;
+INSERT INTO movies_category TABLE movies;
+
+DELETE FROM movies_category WHERE POSITION(@s IN class) > 0;
+
+TRUNCATE TABLE movies_category
+
+SELECT
+    SUBSTRING_INDEX('192.921.23.32', '.', 2)
+    , POSITION('a' in 'vca')
+    , CAST(null AS CHAR)
+
+DROP TABLE IF EXISTS movies_category;
+
+CREATE TABLE IF NOT EXISTS movies_category LIKE movies;
+
+CREATE TABLE IF NOT EXISTS movies_category TABLE movies;
+
+CREATE TABLE IF NOT EXISTS movies_category SELECT * FROM movies;
+
+-- SQLBook: Code
+CREATE TABLE IF NOT exists movies_data LIKE movies;
+
+ALTER TABLE movies_data MODIFY class TEXT;
+
+INSERT INTO movies_data(name, class)
+SELECT
+    class
+    , CONCAT('[', GROUP_CONCAT(DISTINCT JSON_OBJECT('id', id, 'name', name) ORDER BY id SEPARATOR ','), ']') AS movies
+FROM movies_category
+GROUP BY class
+-- WITH ROLLUP
+
+TRUNCATE TABLE movies_data;
+
+WITH
+    RECURSIVE t(`name`, list, class, `step`) AS(
+        SELECT
+            name
+            ,JSON_EXTRACT(class, '$[*].name')
+            ,JSON_VALUE(JSON_EXTRACT(class, '$[*].name'), '$[0]')
+            ,0
+        FROM movies_data
+        UNION ALL
+        SELECT
+            name,
+            list,
+            JSON_UNQUOTE(JSON_EXTRACT(list, CONCAT('$[', step + 1, ']'))),
+            -- JSON_VALUE(list, CONCAT('$[', step + 1, ']')),
+            step + 1
+        FROM t
+        WHERE NOT ISNULL(JSON_UNQUOTE(JSON_EXTRACT(list, CONCAT('$[', step + 1, ']'))))
+    )
+    , t2 AS(
+        SELECT name, list, class FROM t
+    )
+SELECT * FROM t2
+-- SELECT
+--     ROW_NUMBER() OVER() id
+--     ,class
+--     , GROUP_CONCAT(name SEPARATOR '、') category
+-- FROM t2 GROUP BY class
+
+-- SQLBook: Code
+SELECT name, class, MIN(id) min_id FROM movies_category
+GROUP BY name, class
+
+DELETE movies_category
+FROM movies_category
+JOIN (SELECT name, class, MIN(id) min_id FROM movies_category
+GROUP BY name, class) t
+USING(name, class)
+WHERE id > min_id
+-- SQLBook: Code
+WITH
+    RECURSIVE t(emp_id, emp_name, manager, m_name, `path`) AS(
+        SELECT emp_id, emp_name, manager, CAST(IFNULL(manager, NULL) AS CHAR) m_name, COALESCE(manager, CONCAT(emp_id, '')) FROM employee WHERE ISNULL(manager)
+        UNION ALL
+        SELECT
+            e.emp_id
+            ,e.emp_name
+            ,e.manager
+            ,t.emp_name
+            ,CONCAT(t.path, ',', e.emp_id)
+        FROM employee e
+        JOIN t
+        ON e.manager = t.emp_id AND FIND_IN_SET(e.emp_id, t.path) = 0
+    )
+SELECT *, LENGTH(path) - LENGTH(REPLACE(path, ',', '')) + 1 len FROM t
+ORDER BY emp_id;
+
+SELECT
+    FIND_IN_SET('ac', 'abjj,ac')
+    , REPLACE('aaab', 'a', '')
+    , CHAR_LENGTH('是谁21')
+    , LENGTH('是谁21')
+    ,JSON_VALUE('{"fname": "Joe", "lname": "Palmer"}', '$.lname')
+    ,JSON_VALUE('["a", "b", "c"]', '$[0]')
+    ,JSON_EXTRACT('{"fname": "Joe", "lname": "Palmer"}', '$.lname')
+    ,JSON_EXTRACT('["a", "b", "c"]', '$[0]')
+-- SQLBook: Code
+SELECT (0, 0) <> (0, 0)
+
+SELECT GROUP_CONCAT(id ORDER BY id DESC SEPARATOR ';') FROM movies
+
+SELECT DATEDIFF
+-- complex comflexed
+-- SQLBook: Code
+SHOW VARIABLES LIKE 'secure_file_priv';
+-- SQLBook: Code
+-- 将t_web_report表中的name修改为report_name, content -> report_content
+ALTER TABLE t_web_report
+    CHANGE COLUMN name report_name VARCHAR(255) NOT NULL,
+    CHANGE COLUMN content report_content LONGTEXT NOT NULL;
+
+-- t_web_report表添加report_type字段，类型为VARCHAR(50)，默认值为'report'
+ALTER TABLE t_web_report
+    ADD COLUMN report_type VARCHAR(50) NOT NULL DEFAULT 'report' AFTER report_content;
+
+-- t_web_report表添加report_message字段，类型为TEXT，允许为空;添加report_filename字段，类型为VARCHAR(255)，允许为空
+ALTER TABLE t_web_report
+    ADD COLUMN report_error TEXT NULL AFTER report_message,
+    ADD COLUMN report_filename VARCHAR(255) NULL AFTER report_message;
+
+--
+TRUNCATE TABLE t_web_report;
+-- SQLBook: Code
+SHOW CREATE TABLE t_web_report;
+
+SHOW PROCESSLIST;
+
+SHOW VARIABLES LIKE 'have_query_cache';	-- YES
+
+SHOW STATUS LIKE 'Qcache%';
+
+--查询所有支持的字符集
+SHOW CHARSET;
+--查看所有支持的校对规则
+SHOW COLLATION;
+
+-- 字符集: utf8,latinI,GBK,,GBK是utf8的子集
+-- 校对规则: ci 大小定不敏感，cs或bin大小写敏感
+
+SHOW TABLES LIKE 't\_%';
+
+DESC t_web_report;
+-- SQLBook: Code
+WITH
+    t AS (
+        SELECT job_id
+        FROM job
+        WHERE
+            job_id < 4
+        UNION
+        SELECT NULL AS job_id
+    )
+SELECT AVG(job_id), CAST(AVG(job_id) AS DECIMAL(10, 0))
+FROM t;
+-- SQLBook: Code
+SELECT FORMAT(12332.123456, 3);
+
+DELIMITER $;
+CREATE FUNCTION p_round( val DOUBLE, n INT) RETURNS DOUBLE
+DETERMINISTIC
+BEGIN
+    RETURN ROUND(val, n);
+END $
+
+DELIMITER ;
+
+DROP FUNCTION IF EXISTS p_round;
+
+SET @v = 1233123.123123;
+SELECT p_round(@v, 5);
+SELECT p_round(12332.123456, 1);
+-- SQLBook: Code
+DESC t_user;
+SELECT * FROM t_user WHERE user_name REGEXP 'n';
+
+-- 查询test_idx表col1字段中的值为700-800占全部数据的比例
+SELECT
+    ROUND(
+        SUM(CASE WHEN col1 BETWEEN 700 AND 800 THEN 1 ELSE 0 END) / COUNT(*) * 100, 2
+    ) AS ratio_percentage
+FROM test_idx;
+
+SHOW VARIABLES LIKE 'autocommit';

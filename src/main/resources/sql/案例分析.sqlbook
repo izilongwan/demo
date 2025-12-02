@@ -1,0 +1,1119 @@
+-- SQLBook: Code
+SELECT
+    emp_name,
+    calendar_date,
+    clock_in,
+    clock_out,
+    CASE
+        WHEN EXTRACT(
+            HOUR
+            FROM clock_in
+        ) >= 9 THEN '迟到'
+        WHEN EXTRACT(
+            HOUR
+            FROM clock_out
+        ) < 18 THEN '早退'
+        WHEN clock_in IS NULL THEN '早忘打卡'
+        WHEN clock_out IS NULL THEN '晚忘打卡'
+    END `type`
+FROM
+    calendar c
+    JOIN employee e
+    LEFT JOIN attendance a ON a.emp_id = e.emp_id
+    AND a.check_date = c.calendar_date
+WHERE
+    calendar_year = 2021
+    AND is_work_day = 'Y'
+    AND calendar_month = 1
+    AND (
+        clock_out IS NULL
+        OR clock_in IS NULL
+        OR EXTRACT(
+            HOUR
+            FROM clock_in
+        ) >= 9
+        OR EXTRACT(
+            HOUR
+            FROM clock_out
+        ) < 18
+    )
+-- SQLBook: Code
+
+-- SQLBook: Code
+
+-- SQLBook: Code
+
+-- SQLBook: Code
+
+-- SQLBook: Code
+
+-- SQLBook: Code
+
+-- SQLBook: Code
+
+-- SQLBook: Code
+SELECT
+    emp_name,
+    sex,
+    hire_date,
+    CASE
+        WHEN sex = '男' AND EXTRACT(YEAR FROM hire_date) > 2011 THEN '手表'
+        WHEN sex = '女' AND EXTRACT(YEAR FROM hire_date) > 2011 THEN '化妆品'
+        WHEN sex = '男' AND EXTRACT(YEAR FROM hire_date) > 2006 THEN '手机'
+        WHEN sex = '女' AND EXTRACT(YEAR FROM hire_date) > 2006 THEN '项链'
+        ELSE '电脑'
+    END gift
+FROM employee
+-- SQLBook: Code
+SELECT
+    COALESCE(sname, '总计') sname,
+    SUM(CASE cname WHEN '语文' THEN grade END) yuwen,
+    SUM(CASE cname WHEN '数学' THEN grade END) shuxue,
+    SUM(CASE cname WHEN '英语' THEN grade END) yinyu,
+    SUM(grade) total
+FROM test.t_score
+GROUP BY
+    sname WITH ROLLUP
+ORDER BY
+    IF(ISNULL(sname), -1, total) DESC
+-- SQLBook: Code
+WITH
+    t AS(SELECT seller_id, item_id, SUM(num) num FROM t5 GROUP BY seller_id, item_id),
+    t2 AS(SELECT *, RANK() OVER(PARTITION BY seller_id ORDER BY num DESC) rk FROM t)
+SELECT
+    seller_id, item_id, num
+FROM t2
+WHERE rk = 1
+
+-- SQLBook: Code
+SELECT
+    seller_id,
+    ROUND(SUM(IF(source_type = 1, order_cnt, 0)) / SUM(order_cnt), 2) ratio
+FROM t4
+GROUP BY
+    seller_id
+-- SQLBook: Code
+WITH
+    t AS (SELECT user_id, MIN(sell_day) first_day FROM t3 GROUP BY user_id),
+    t2 AS (
+        SELECT t.user_id, first_day, SUM(amount) total
+        FROM t
+        JOIN t3
+        ON (
+            t.user_id = t3.user_id
+            AND (t3.sell_day BETWEEN t.first_day AND DATE_ADD(t.first_day, INTERVAL 30 DAY))
+        )
+        GROUP BY t.user_id
+    )
+SELECT *
+FROM t2
+-- SQLBook: Code
+SELECT
+    author_id,
+    t1.live_id,
+    COALESCE(SUM(watching_duration / live_duration), 0) acu
+FROM t1
+LEFT JOIN t2
+ON t1.live_id = t2.live_id
+GROUP BY
+    t1.author_id, t1.live_id
+-- SQLBook: Code
+SELECT
+    t1.*
+FROM excellent_emp t1
+JOIN excellent_emp t2
+ON
+    t1.emp_id = t2.emp_id
+    AND t1.year = 2019
+    AND t2.year = 2020
+-- SQLBook: Code
+SELECT
+    t1.*,
+    t2.emp_name
+FROM excellent_emp t1
+LEFT JOIN excellent_emp t2
+ON
+    t1.emp_id = t2.emp_id
+    AND t2.year = 2019
+WHERE
+    t1.year = 2020
+    AND t2.emp_name IS NULL
+
+-- SQLBook: Code
+SELECT
+    name,
+    LEFT(phone, 5),
+    INSERT(phone, CHAR_LENGTH(phone) - 7, 4, REPEAT('*', 4)),
+    INSERT(id_card, 7, 8, REPEAT('*', 8)),
+    id_card
+FROM users_info
+-- SQLBook: Code
+SELECT
+    e.dept_id,
+    dept_name,
+    GROUP_CONCAT(DISTINCT sex),
+    GROUP_CONCAT(emp_name ORDER BY e.hire_date, e.emp_id SEPARATOR ';') emp_names,
+    COUNT(emp_name) c
+FROM employee e
+JOIN department d
+ON
+    e.dept_id = d.dept_id
+GROUP BY
+    e.dept_id
+-- SQLBook: Code
+WITH
+RECURSIVE m(id, name, class, newClass)
+AS(
+    SELECT
+        id,
+        name,
+        SUBSTR(class, 1, INSTR(class, '、') - 1) class,
+        SUBSTR(CONCAT(class, '、'), INSTR(class, '、') + 1) newClass
+    FROM movies
+    UNION ALL
+    SELECT
+        id,
+        name,
+        SUBSTR(newClass, 1, INSTR(newClass, '、') - 1) class,
+        SUBSTR(newClass, INSTR(newClass, '、') + 1) newClass
+    FROM m
+    WHERE INSTR(newClass, '、') > 0
+)
+SELECT *
+FROM m
+ORDER BY id
+-- SQLBook: Code
+SELECT *
+FROM users
+WHERE
+id IN (
+    SELECT * FROM (
+    SELECT id
+    FROM users
+    LIMIT 900000, 100
+    ) t
+)
+ORDER BY create_time, id
+-- SQLBook: Code
+SELECT *
+FROM users t1
+JOIN (
+    SELECT id
+    FROM users
+    LIMIT 900000, 100
+) t2
+ON t1.id = t2.id
+ORDER BY t1.create_time, t1.id
+-- SQLBook: Code
+DESC
+SELECT col1, col2
+FROM test_idx
+WHERE col1 = 100
+-- SQLBook: Code
+DROP PROCEDURE IF EXISTS p_luck_draw
+
+CREATE PROCEDURE p_luck_draw(IN $prize VARCHAR(10), IN $num TINYINT UNSIGNED)
+BEGIN
+    INSERT INTO
+        luck_emp(emp_id, emp_name, prize)
+    SELECT
+        emp_id,
+        emp_name,
+        $prize
+    FROM employee
+    WHERE emp_id NOT IN (
+        SELECT emp_id FROM luck_emp
+    )
+    ORDER BY RAND()
+    LIMIT $num;
+
+    SELECT * FROM luck_emp;
+END
+
+-- SQLBook: Code
+DESC
+SELECT *
+FROM orders
+WHERE
+    o_orderdate > '2021-10-10'
+    AND (o_orderpriority = '1' OR o_shippriority = 1)
+ORDER BY
+    o_orderdate DESC
+LIMIT 200, 10
+-- SQLBook: Code
+DESC
+SELECT *
+FROM orders
+WHERE
+    o_orderdate BETWEEN DATE('2022-01-01') AND DATE('2022-12-31')
+LIMIT 10
+-- SQLBook: Code
+ALTER TABLE excellent_emp ADD INDEX idx_empname(emp_name)
+
+DESC
+SELECT *
+FROM excellent_emp
+WHERE emp_name LIKE '%1'
+-- SQLBook: Code
+WITH RECURSIVE
+    t AS (
+        SELECT emp_id, emp_name, manager, CONCAT(emp_id) `path`
+        FROM employee
+        WHERE ISNULL(manager)
+        UNION ALL
+        SELECT e.emp_id, e.emp_name, e.manager, CONCAT_WS('-', t.path, e.emp_id) `path`
+        FROM employee e
+        JOIN t
+        ON e.manager = t.emp_id
+    ),
+    t2 AS (
+        SELECT
+            t.*, IF(e.emp_id, 1, 0) has_children, IF(t.manager, 0, 1) is_root
+        FROM t
+        LEFT JOIN LATERAL (
+            SELECT *
+            FROM employee e
+            WHERE t.emp_id = e.manager
+            LIMIT 1
+        ) e
+        ON 1 = 1
+    )
+SELECT *
+FROM t2
+-- SQLBook: Code
+SELECT
+    seller_id,
+    ROUND(SUM(IF(source_type = 1, order_cnt, 0)) / SUM(order_cnt), 2) ratio
+FROM t4
+GROUP BY
+    seller_id
+-- SQLBook: Code
+SELECT dept_id, dept_name, COUNT(dept_id) total, REPEAT('▆', COUNT(dept_id)) echart
+FROM department d
+LEFT JOIN
+employee e
+USING(dept_id)
+GROUP BY dept_id
+ORDER BY total DESC
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            CASE dept_id WHEN 1 THEN CONCAT('█', dept_name, '[', dept_id, ']') END c1,
+            CASE dept_id WHEN 2 THEN CONCAT('█', dept_name, '[', dept_id, ']') END c2,
+            CASE dept_id WHEN 3 THEN CONCAT('█', dept_name, '[', dept_id, ']') END c3,
+            CASE dept_id WHEN 4 THEN CONCAT('█', dept_name, '[', dept_id, ']') END c4,
+            CASE dept_id WHEN 5 THEN CONCAT('█', dept_name, '[', dept_id, ']') END c5,
+            CASE dept_id WHEN 6 THEN CONCAT('█', dept_name, '[', dept_id, ']') END c6,
+            ROW_NUMBER() OVER(PARTITION BY dept_id) rw
+        FROM department d
+        LEFT JOIN employee e
+        USING(dept_id)
+    ),
+    t2 AS(
+        SELECT
+            MAX(c1) c1,
+            MAX(c2) c2,
+            MAX(c3) c3,
+            MAX(c4) c4,
+            MAX(c5) c5,
+            MAX(c6) c6
+        FROM t
+        GROUP BY rw
+        ORDER BY 1, 2, 3, 4, 5, 6
+    ),
+    t3 AS(
+        SELECT
+            CONCAT(COUNT(c1), '人') c1,
+            CONCAT(COUNT(c2), '人') c2,
+            CONCAT(COUNT(c3), '人') c3,
+            CONCAT(COUNT(c4), '人') c4,
+            CONCAT(COUNT(c5), '人') c5,
+            CONCAT(COUNT(c6), '人') c6
+        FROM t2
+    ),
+    t4 AS(
+        SELECT
+            MAX(SUBSTR(c1, 2, 100)) c1,
+            MAX(SUBSTR(c2, 2, 100)) c2,
+            MAX(SUBSTR(c3, 2, 100)) c3,
+            MAX(SUBSTR(c4, 2, 100)) c4,
+            MAX(SUBSTR(c5, 2, 100)) c5,
+            MAX(SUBSTR(c6, 2, 100)) c6
+        FROM t2
+    ),
+    t5 AS(
+        SELECT
+            SUBSTR(c1, 1, 1) c1,
+            SUBSTR(c2, 1, 1) c2,
+            SUBSTR(c3, 1, 1) c3,
+            SUBSTR(c4, 1, 1) c4,
+            SUBSTR(c5, 1, 1) c5,
+            SUBSTR(c6, 1, 1) c6
+        FROM t2
+    )
+SELECT *
+FROM t5
+UNION ALL
+SELECT *
+FROM t4
+UNION ALL
+SELECT *
+FROM t3
+-- SQLBook: Code
+SELECT *
+FROM (
+    SELECT
+        *
+        ,SUM(amount) OVER(
+            PARTITION BY from_user
+            ORDER BY log_ts
+            RANGE BETWEEN INTERVAL 5 DAY PRECEDING AND CURRENT ROW
+        ) total
+    FROM transfer_log
+) t
+WHERE total >= 1000000
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            *
+            ,COUNT(*) OVER(
+                PARTITION BY from_user, to_user
+                ORDER BY log_ts
+                RANGE BETWEEN INTERVAL 5 DAY PRECEDING AND CURRENT ROW
+            ) times
+        FROM transfer_log
+    )
+    ,t2 AS(
+        SELECT *
+        FROM t
+        WHERE times >=3
+    )
+    ,t3 AS(
+        SELECT tl.*
+        FROM t2 t
+        JOIN transfer_log tl
+        ON
+            t.log_ts <= DATE_ADD(tl.log_ts, INTERVAL 5 DAY)
+            AND t.log_ts >= tl.log_ts
+            AND t.from_user = tl.from_user
+            AND t.to_user = tl.to_user
+    )
+SELECT *
+FROM t3
+-- SQLBook: Code
+WITH RECURSIVE
+    t AS(
+        SELECT
+            station_name
+            , next_station
+            , CAST(CONCAT(line_name, '-', station_name, '-->', line_name, '-', next_station) AS CHAR(500)) paths
+            , 1 step
+        FROM bj_subway
+        WHERE station_name = '王府井'
+        UNION ALL
+        SELECT
+            t.station_name
+            , s.next_station
+            , CONCAT(paths, '-->', line_name, '-', s.next_station)
+            , step + 1
+        FROM t
+        JOIN bj_subway s
+        ON
+            t.next_station = s.station_name
+            AND INSTR(paths, s.next_station) = 0
+    )
+SELECT *
+FROM t
+WHERE next_station = '积水潭'
+-- SQLBook: Code
+SELECT
+    seller_id
+    , COALESCE(SUM(IF(source_type = 1, order_cnt, NULL)), 0) / SUM(order_cnt)
+FROM t4
+GROUP BY seller_id
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            seller_id
+            ,item_id
+            , SUM(num) total
+        FROM t5
+        GROUP BY seller_id, item_id
+    )
+    , t2 AS(
+        SELECT
+            *,
+            RANK() OVER(PARTITION BY seller_id ORDER BY total DESC) rk
+        FROM t
+    )
+SELECT *
+FROM t2
+WHERE rk = 1
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT permission_id, user_id, user_name
+        FROM t_user
+        JOIN t_user_permission
+        USING(user_id)
+        UNION
+        SELECT permission_id, user_id, user_name
+        FROM t_user
+        JOIN t_user_role
+        USING(user_id)
+        JOIN t_role
+        USING(role_id)
+        JOIN t_role_permission
+        USING(role_id)
+        WHERE user_id = 2
+    )
+SELECT
+    *,
+    IF(user_id, 1, 0) has_per
+FROM t_permission
+LEFT JOIN t
+USING(permission_id)
+-- SQLBook: Code
+SELECT
+    *
+    , LAG(amount, 12) OVER p_amount prev_amount
+    , (amount - LAG(amount, 1) OVER p_amount) / LAG(amount, 1) OVER p_amount * 100 precent
+FROM sales_monthly
+WINDOW p_amount AS(PARTITION BY product ORDER BY ym)
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            *
+            , NTH_VALUE(amount, 1) OVER w f_amount
+            , ROW_NUMBER() OVER w rw
+        FROM sales_monthly
+        WINDOW w AS(PARTITION BY product ORDER BY ym)
+    )
+SELECT
+    *
+    , (POWER(amount / f_amount, 1.0 / (rw - 1) ) - 1) * 100 percent
+FROM t
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            *
+            ,ROW_NUMBER() OVER(PARTITION BY uid ORDER BY scan_time) rw
+            ,ROW_NUMBER() OVER(PARTITION BY uid, area ORDER BY scan_time) rw2
+        FROM trail
+    )
+    ,t2 AS(
+        SELECT
+            uid
+            , area
+            ,MIN(scan_time) start_time
+            ,MAX(scan_time) end_time
+        FROM t
+        GROUP BY
+            uid
+            , area
+            , rw - rw2
+    )
+    ,t3 AS(
+        SELECT *
+        FROM t2
+        WHERE end_time >= DATE_ADD(start_time , INTERVAL 30 MINUTE)
+    )
+    , t4 AS(
+        SELECT
+            tt0.*
+            ,TIMEDIFF(
+                IF(t0.end_time < tt0.end_time, t0.end_time, tt0.end_time)
+                , IF(t0.start_time > tt0.start_time, t0.start_time, tt0.start_time)
+            ) diff
+            ,TIMESTAMPDIFF(
+                SECOND
+                , IF(t0.start_time > tt0.start_time, t0.start_time, tt0.start_time)
+                , IF(t0.end_time < tt0.end_time, t0.end_time, tt0.end_time)
+            )
+        FROM t3 t0
+        JOIN t3 tt0
+        ON
+            t0.uid <> tt0.uid
+            AND t0.area = tt0.area
+            AND t0.start_time + INTERVAL 10 MINUTE <= tt0.end_time
+            AND tt0.start_time + INTERVAL 10 MINUTE <= t0.end_time
+        WHERE t0.uid = '13011111111'
+    )
+SELECT *
+FROM t4
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            *
+            , DATE_FORMAT(sale_time, '%Y%m%d%H') `time`
+        FROM sales
+        WHERE
+            sale_time BETWEEN '2022-04-01 09:00:00' AND '2022-04-01 9:59:59'
+    )
+    , t2 AS(
+        SELECT
+            product_id
+            ,SUM(quantity) total
+            , time
+        FROM t
+        GROUP BY product_id, time
+    )
+    ,t3 AS(
+        SELECT
+            *
+            ,RANK() OVER(PARTITION BY product_category ORDER BY total DESC) rk
+        FROM t2
+        JOIN products p
+        USING(product_id)
+    )
+SELECT *
+FROM t3
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            *
+            , DATE_FORMAT(sale_time, '%Y%m%d%H') `time`
+        FROM sales
+        WHERE
+            sale_time BETWEEN '2022-04-01 08:00:00' AND '2022-04-01 9:59:59'
+    )
+    , t2 AS(
+        SELECT
+            product_id
+            , time
+            , SUM(quantity) total
+            ,RANK() OVER(PARTITION BY time ORDER BY SUM(quantity) DESC) rk
+        FROM t
+        GROUP BY product_id, time
+    )
+    ,t3 AS(
+        SELECT
+            *
+            , LAG(rk, 1) OVER w prev_rk
+            , LAG(rk, 1, 999) OVER w - rk / rk * 100 per
+        FROM t2
+        JOIN products p
+        USING(product_id)
+        WINDOW w AS(PARTITION BY product_id ORDER BY time)
+        ORDER BY per DESC
+    )
+SELECT *
+FROM t3
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT *
+        FROM t_friend
+        JOIN t_user_f
+        USING(user_id)
+        WHERE user_id = 1
+    )
+    ,t2 AS(
+        SELECT t.*, f.user_name fname
+        FROM t
+        LEFT JOIN t_user_f f
+        ON t.friend_id = f.user_id
+    )
+SELECT * FROM t2
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT *
+        FROM t_friend
+        WHERE user_id = 2
+    )
+    ,t2 AS(
+        SELECT *
+        FROM t_friend
+        WHERE user_id = 3
+    )
+    ,t3 AS(
+        SELECT t2.* , f.user_name
+        FROM t
+        JOIN t2
+        ON t.friend_id = t2.friend_id
+        JOIN t_user_f f
+        ON t.friend_id = f.user_id
+    )
+SELECT * FROM t3
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT friend_id
+        FROM t_friend
+        WHERE user_id = 2
+    )
+    , t2 AS(
+        SELECT
+            friend_id, tuf.user_name, COUNT(friend_id) total
+        FROM t_user_f tuf
+        JOIN t_friend tf
+        ON
+            tf.user_id <> 2
+            AND tf.friend_id <> 2
+            AND tf.friend_id NOT IN (SELECT * FROM t)
+            AND tf.friend_id = tuf.user_id
+        GROUP BY tf.friend_id
+    )
+SELECT *
+FROM t2
+-- SQLBook: Code
+WITH
+    RECURSIVE t AS(
+        SELECT user_id, friend_id, 1 step, CONCAT_WS(',', ',', user_id, friend_id) path
+        FROM t_friend
+    UNION ALL
+        SELECT t.user_id, f.friend_id, step + 1, CONCAT_WS(',', path, f.friend_id)
+        FROM t
+        JOIN t_friend f
+        ON
+            t.friend_id = f.user_id
+            AND INSTR(path, CONCAT(',', f.friend_id, ',')) = 0
+            AND step <= 6
+    )
+    , t2 AS(
+        SELECT
+            user_id
+            , friend_id
+            , MIN(SUBSTR(path, 3))
+            , LENGTH(MIN(SUBSTR(path, 3))) - LENGTH(REPLACE(MIN(SUBSTR(path, 3)), ',', ''))
+        FROM t
+        WHERE step > 1
+        GROUP BY user_id, friend_id
+    )
+SELECT *
+FROM t2
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            *
+            , LAG(log_date, 1) OVER(ORDER BY log_date) prev_date
+            , LAG(num, 1, 0) OVER(ORDER BY log_date) prev_num
+            , LEAD(log_date, 1) OVER(ORDER BY log_date) next_date
+            , LEAD(num , 1, 0) OVER(ORDER BY log_date) next_num
+        FROM visitor
+    )
+    ,t2 AS(
+        SELECT
+            *
+        FROM t
+        WHERE
+            num >= 10000
+            AND prev_num >= 10000
+            AND next_num >= 10000
+    )
+SELECT *
+FROM t2
+-- SQLBook: Code
+WITH
+    RECURSIVE t AS(
+        SELECT source_id, target_id, 1 step, CONCAT_WS('->', source_id, target_id) path FROM edge
+        UNION ALL
+        SELECT
+            t.source_id
+            ,n.target_id
+            ,step + 1
+            ,CONCAT_WS('->', path, n.target_id)
+        FROM t
+        JOIN edge n
+        ON
+            t.target_id = n.source_id
+    )
+SELECT * FROM t
+-- SQLBook: Code
+DELETE p2
+FROM people p1
+JOIN people p2
+ON
+    p1.email = p2.email
+    AND p1.id < p2.id
+-- SQLBook: Code
+TRUNCATE TABLE people
+
+insert into people(name, email)
+values ('张三', 'zhangsan@test.com'),
+       ('李四', 'lisi@test.com'),
+       ('王五', 'wangwu@test.com'),
+       ('李斯', 'lisi@test.com'),
+       ('王五', 'wangwu@test.com'),
+       ('王五', 'wangwu@test.com');
+-- SQLBook: Code
+DELETE
+FROM people
+WHERE id NOT IN(
+    SELECT * FROM(
+        SELECT MIN(id) FROM people GROUP BY email
+    ) t
+)
+-- SQLBook: Code
+DELETE
+FROM people
+WHERE id IN (
+    SELECT id FROM (
+        SELECT
+            *
+            , ROW_NUMBER() OVER(PARTITION BY email) rk
+        FROM people
+    ) t
+    WHERE rk > 1
+)
+-- SQLBook: Code
+WITH
+    RECURSIVE t AS(
+        SELECT SUBDATE(DATE(COALESCE(${DATE}, CURRENT_DATE())) + 1, DAYOFMONTH(DATE(COALESCE(${DATE}, CURRENT_DATE())))) ymd
+        UNION ALL
+        SELECT DATE_ADD(ymd, INTERVAL 1 DAY)
+        FROM t
+        WHERE ymd < LAST_DAY(ymd)
+    )
+    , t2 AS(
+        SELECT
+            *
+            , WEEK(ymd, 1) w
+            , DAYOFWEEK(ymd) dw
+            , DAYOFMONTH(ymd) dm
+        FROM t
+    )
+    , t3 AS(
+        SELECT
+             MIN(CASE dw WHEN 2 THEN dm END) 星期一
+            ,MIN(CASE dw WHEN 3 THEN dm END) 星期二
+            ,MIN(CASE dw WHEN 4 THEN dm END) 星期三
+            ,MIN(CASE dw WHEN 5 THEN dm END) 星期四
+            ,MIN(CASE dw WHEN 6 THEN dm END) 星期五
+            ,MIN(CASE dw WHEN 7 THEN dm END) 星期六
+            ,MIN(CASE dw WHEN 1 THEN dm END) 星期日
+        FROM t2
+        GROUP BY w
+    )
+SELECT * FROM t3
+-- SQLBook: Code
+SELECT ADDDATE('2024-01-01', 1)
+
+DESC SELECT * FROM employee
+
+SHOW INDEX FROM node
+
+SHOW DATABASES
+
+SELECT DATABASE()
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            year
+            , JSON_ARRAYAGG(JSON_OBJECT('id', emp_id, 'name', emp_name)) data
+        FROM test.excellent_emp
+        GROUP BY year
+    )
+    ,t2 AS(
+        SELECT
+            DISTINCT
+            JSON_OBJECT('id', emp_id, 'name', emp_name) data
+        FROM test.excellent_emp
+    )
+    ,t3 AS(
+        SELECT
+            '合计' year
+            ,JSON_ARRAYAGG(data) data
+        FROM t2
+    )
+SELECT * FROM t
+UNION ALL
+SELECT * FROM t3
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            CONCAT(year, '') year
+            , CONCAT(
+                '['
+                , GROUP_CONCAT(JSON_OBJECT('emp_name', emp_name, 'id', emp_id) ORDER BY emp_id)
+                , ']'
+            ) data
+        FROM test.excellent_emp
+        GROUP BY year
+    )
+    , t0 AS(
+        SELECT *, JSON_LENGTH(data) FROM t
+    )
+    , t2 AS(
+        SELECT
+            DISTINCT
+            emp_id,
+            JSON_OBJECT('emp_name', emp_name, 'id', emp_id) data
+        FROM test.excellent_emp
+    )
+    , t3 AS(
+        SELECT
+            '合计' year
+            , CONCAT('[', (GROUP_CONCAT(data ORDER BY emp_id)), ']') data
+        FROM t2
+    )
+SELECT *, JSON_LENGTH(data) length FROM t
+UNION ALL
+SELECT *, JSON_LENGTH(data) length FROM t3
+-- SQLBook: Code
+WITH
+    t AS(
+        SELECT
+            LEFT(emp_name, 1) name
+            ,CONCAT(
+                '['
+                ,GROUP_CONCAT(JSON_OBJECT('id', emp_id, 'name', emp_name) ORDER BY emp_id)
+                ,']'
+            ) data
+        FROM test.employee
+        GROUP BY LEFT(emp_name, 1) WITH ROLLUP
+        ORDER BY ISNULL(name), CONVERT(name USING GBK)
+    )
+SELECT
+    COALESCE(name, '合计') name
+    , data
+FROM t
+-- SQLBook: Code
+SELECT emp_name FROM employee e
+WHERE EXISTS (
+    SELECT * FROM employee
+    WHERE emp_id = 1 AND e.emp_id = 1
+)
+-- SQLBook: Code
+CREATE TABLE IF NOT EXISTS t_enum(
+    id int PRIMARY KEY AUTO_INCREMENT COMMENT 'ID'
+    , `value` ENUM('9', '8', '7') COMMENT 'value'
+    , value_en ENUM('NINE', 'EIGHT', 'SEVEN') COMMENT 'en'
+)
+
+INSERT INTO t_enum(value, value_en) VALUES('7', 'SEVEN');
+
+DELETE FROM t_enum WHERE `value` = '' OR value_en = ''
+
+SELECT *, value_en+ 0 FROM t_enum
+
+ALTER TABLE api_code RENAME mico_app.api_code
+
+SHOW CREATE TABLE mico_app.`user`
+-- SQLBook: Code
+SELECT *
+FROM employee
+ORDER BY CONVERT(emp_name USING GBK), emp_id;
+-- SQLBook: Code
+WITH
+    RECURSIVE t(num, money, balance) AS(
+        SELECT 1, ROUND((100 - 0.01 * 10) * RAND(), 2), 100 - 0.01 * 10
+        UNION ALL
+        SELECT num + 1, ROUND(IF(num < 9, (balance - money) * RAND(), balance - money), 2), balance - money
+        FROM t WHERE num < 10
+    )
+SELECT SUM(money + 0.01) FROM t
+-- SQLBook: Code
+SELECT
+    emp_name
+    ,AVG(salary) OVER(ORDER BY salary ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) `avg_salary`
+    ,salary
+    ,LAG(salary, 1) OVER(ORDER BY salary) prev
+    ,LEAD(salary, 1) OVER(ORDER BY salary) next
+    ,AVG(bonus) OVER(ORDER BY bonus ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) avg_bouns
+    ,LAG(bonus, 1, 0) OVER(ORDER BY bonus) prev_bouns
+    ,bonus
+    ,LEAD(bonus, 1) OVER(ORDER BY bonus) nex_bouns
+FROM employee
+-- SQLBook: Code
+-- 优化sql
+WITH t AS(
+    SELECT
+        LEFT(emp_name, 1) name
+        ,JSON_ARRAYAGG(JSON_OBJECT('id', emp_id, 'name', emp_name)) data
+    FROM test.employee
+    GROUP BY 1 WITH ROLLUP
+    ORDER BY ISNULL(name), CONVERT(name USING GBK)
+)
+SELECT COALESCE(name, '合计') name, data FROM t
+-- SQLBook: Code
+-- 查询employee表中的所有员工的姓名和入职日期
+SELECT emp_name, hire_date FROM employee
+
+-- 获取employee的索引
+SHOW INDEX FROM employee
+
+-- 获取所有数据库
+SHOW DATABASES;
+-- 获取当前数据库
+SELECT DATABASE();
+-- 查询员工表中的所有员工的姓名和入职日期
+SELECT emp_name, hire_date FROM employee;
+
+-- 查询员工表中的所有员工的姓名和入职日期
+SELECT emp_name, hire_date FROM employee;
+
+-- 查询员工表中的所有员工的姓名和入职日期、工资
+SELECT emp_name, hire_date, salary FROM employee;
+
+-- 查询员工表中的所有员工的姓名和入职日期、工资、奖金
+SELECT emp_name, hire_date, salary, bonus FROM employee;
+
+-- 查询员工表的索引
+SHOW INDEX FROM employee;
+
+-- 查询当月的日历
+WITH
+    RECURSIVE t AS(
+        SELECT SUBDATE(DATE(COALESCE(${DATE}, CURRENT_DATE())) + 1, DAYOFMONTH(DATE(COALESCE(${DATE}, CURRENT_DATE())))) ymd
+        UNION ALL
+        SELECT DATE_ADD(ymd, INTERVAL 1 DAY)
+        FROM t
+        WHERE ymd < LAST_DAY(ymd)
+    )
+    , t2 AS(
+        SELECT
+            *
+            , WEEK(ymd, 1) w
+            , DAYOFWEEK(ymd) dw
+            , DAYOFMONTH(ymd) dm
+        FROM t
+    )
+    , t3 AS(
+        SELECT
+             MIN(CASE dw WHEN 2 THEN dm END) 星期一
+            ,MIN(CASE dw WHEN 3 THEN dm END) 星期二
+            ,MIN(CASE dw WHEN 4 THEN dm END) 星期三
+            ,MIN(CASE dw WHEN 5 THEN dm END) 星期四
+            ,MIN(CASE dw WHEN 6 THEN dm END) 星期五
+            ,MIN(CASE dw WHEN 7 THEN dm END) 星期六
+            ,MIN(CASE dw WHEN 1 THEN dm END) 星期日
+        FROM t2
+        GROUP BY w
+    )
+SELECT * FROM t3;
+
+-- 查询员工表中的所有员工的姓名和入职日期
+SELECT emp_name, hire_date FROM employee;
+
+-- 获取所有以"t_"开头的表且长度为2或者3的表名,表名必须包含"_"字符
+SELECT table_name
+FROM information_schema.tables
+WHERE
+    table_name REGEXP '^t_[a-z0-9_]{2,4}$'
+    AND LENGTH(table_name) BETWEEN 2 AND 10
+-- SQLBook: Code
+SELECT emp_name, dept_name FROM employee NATURAL JOIN department
+
+-- 全连接查询emooyee和department表
+
+SELECT emp_name, dept_name
+FROM employee
+    LEFT JOIN department ON employee.dept_id = department.dept_id
+-- SQLBook: Markup
+FED74DBA-6BEA-409E-BCC4-470E493312F6
+-- SQLBook: Code
+SELECT (2, 4) IN ((1, 3), (2, 4)) FROM employee
+WINDOW c AS (PARTITION BY dept_id ORDER BY salary DESC)
+LIMIT 1
+
+SELECT SUBSTR(hire_date, 6, 2) FROM employee WHERE (emp_id, dept_id) IN ((1, 1), (2, 2))
+
+-- 查询员工表等于5的员工的薪资
+SELECT emp_name, salary FROM employee WHERE salary > ALL(
+    SELECT salary FROM employee WHERE emp_id = 5
+)
+
+-- 查询部门员工的平均薪资
+SELECT dept_name, (
+    SELECT AVG(salary) FROM employee WHERE dept_id = d.dept_id
+) avg_salary
+FROM department d
+
+SELECT d.dept_name, FORMAT(e.s, 1) s FROM department d
+JOIN LATERAL (
+    SELECT AVG(salary) s FROM employee e WHERE e.dept_id = d.dept_id
+) e
+
+SELECT * FROM department d WHERE EXISTS (
+    SELECT NULL FROM employee WHERE (sex, dept_id) IN (('女', d.dept_id))
+)
+
+SELECT * FROM department d WHERE EXISTS (
+    SELECT NULL FROM employee
+    WHERE sex = ALL(
+        SELECT * FROM (
+            SELECT sex FROM employee GROUP BY sex HAVING sex = '女' LIMIT 1
+        ) t
+    )
+    AND d.dept_id = dept_id
+)
+-- SQLBook: Code
+-- 获取每个部门当前薪资最高的员工的信息
+SELECT
+    dept_name
+    ,emp_name
+    ,salary
+FROM department d
+JOIN employee e USING(dept_id)
+WHERE (e.dept_id, salary) IN (
+    SELECT dept_id, MAX(salary) FROM employee GROUP BY dept_id
+)
+
+-- 获取employee表中员工姓名的长度，字节的长度
+SELECT emp_name, LENGTH(emp_name), CHAR_LENGTH(emp_name), NOW(2) FROM employee
+
+SELECT
+    emp_name
+    , LAG(salary) OVER(ORDER BY salary) prev_salary
+    , salary
+    , LEAD(salary) OVER(ORDER BY salary) next_salary
+FROM employee
+-- SQLBook: Code
+CREATE TABLE t_enum3 SELECT * FROM t_enum where id = 13
+
+CREATE TABLE t_enum3 TABLE t_enum
+
+CREATE TABLE IF NOT EXISTS t_enum2 LIKE t_enum
+
+INSERT INTO t_enum2 TABLE t_enum
+
+INSERT INTO t_enum2 SELECT * FROM t_enum WHERE id = 12
+
+TRUNCATE TABLE t_enum2
+
+DROP TABLE IF EXISTS t_enum3
+
+ALTER TABLE t_enum2 AUTO_INCREMENT = 1
+-- SQLBook: Code
+CREATE TABLE IF NOT EXISTS t_value(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    value VARCHAR(50),
+    create_time DATETIME DEFAULT NOW(),
+    create_by VARCHAR(20)
+)
+
+INSERT INTO t_value(id)
+VALUES(1)
+ON DUPLICATE KEY UPDATE create_time = NOW()
+-- SQLBook: Code
+-- 查询excellent表中按入职日期分组每组工资前2名的员工信息
+SELECT
+    emp_name
+    , YEAR(hire_date)
+    , RANK() OVER(PARTITION BY YEAR(hire_date) ORDER BY salary DESC) rk
+    , salary
+FROM employee
+-- SQLBook: Code
+SELECT
+    YEAR(CURRENT_DATE()) - YEAR(hire_date) year_count
+    ,COUNT(*) total_count
+    ,COUNT(NULLIF(sex, '男')) AS female_count
+    ,COUNT(NULLIF(sex, '女')) AS male_count
+    ,GROUP_CONCAT(emp_name) total_names
+    ,GROUP_CONCAT(IF(sex = '男', emp_name, NULL)) AS male_names
+    ,GROUP_CONCAT(IF(sex = '女', emp_name, NULL)) AS female_names
+FROM employee
+GROUP BY year_count
+ORDER BY year_count DESC, total_count DESC

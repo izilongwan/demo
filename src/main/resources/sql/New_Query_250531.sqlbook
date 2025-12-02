@@ -1,0 +1,50 @@
+-- SQLBook: Code
+SELECT DATABASE();
+
+SET @tables = NULL;
+SELECT GROUP_CONCAT(table_name) INTO @tables
+FROM information_schema.tables
+WHERE table_schema = (SELECT DATABASE());
+
+SET @sql = concat('drop table if exists ', @TABLES);
+PREPARE q FROM @sql;
+EXECUTE q;
+DEALLOCATE PREPARE q;
+
+-- SQLBook: Code
+SELECT * FROM products;
+
+SELECT product_subcategory, COUNT(*) AS count
+FROM products
+GROUP BY product_subcategory;
+-- SQLBook: Code
+-- 导出employee数据，在客户端中另存为 txt/CSV 文件
+SELECT * FROM employee;
+
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+-- SQLBook: Code
+SELECT dept_id
+FROM employee;
+-- INTO OUTFILE '/tmp/users_data.sql'
+-- FIELDS TERMINATED BY ''
+-- LINES TERMINATED BY '\n';
+-- SQLBook: Code
+-- SET SESSION group_concat_max_len = 1024 * 1024;  -- 1MB
+
+SELECT GROUP_CONCAT(
+  'INSERT INTO employee(emp_id, emp_name, dept_id) VALUES (',
+  emp_id, ', ',
+  QUOTE(emp_name), ', ',
+  dept_id,
+  ');'
+  SEPARATOR ''
+)
+FROM employee;
+
+SHOW DATABASES;
+
+SELECT DATABASE();
+
+-- SQLBook: Code
+SELECT * FROM edge;
