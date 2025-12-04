@@ -1,5 +1,6 @@
 package com.demo.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -36,12 +37,16 @@ public class AuthController {
 
     @GetMapping("/me")
     public Map<String, Object> me(Authentication authentication) {
-        Map<String, Object> map = new HashMap<>();
-        if (authentication != null) {
-            map.put("username", authentication.getName());
-            GithubUser user = (GithubUser) authentication.getDetails();
-            map.putAll(BeanUtil.beanToMap(user));
+        if (authentication == null) {
+            return Collections.emptyMap();
         }
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("username", authentication.getName());
+
+        GithubUser user = (GithubUser) authentication.getDetails();
+        map.putAll(BeanUtil.beanToMap(user));
+
         return map;
     }
 
@@ -49,7 +54,7 @@ public class AuthController {
     public Map<String, String> refresh(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refresh_token");
         if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new IllegalArgumentException("refresh_token is required");
+            throw ExceptionVO.error("refresh_token is required");
         }
 
         Claims claims = jwtUtil.parseToken(refreshToken);
