@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.demo.mapper.GithubUserMapper">
+
+    <!-- 基础结果映射，只包含需要的字段 -->
+    <resultMap id="GithubUserBaseMap" type="com.demo.domain.entity.GithubUser">
+        <id     property="id"           column="id" />
+        <result property="loginUsername" column="login_username" />
+        <result property="githubId"     column="github_id" />
+        <result property="avatarUrl"    column="avatar_url" />
+        <result property="nodeId"       column="node_id" />
+    </resultMap>
+
+    <!-- 按 github_id 查询（示例），只返回指定字段 -->
+    <select id="selectGithubUserById" parameterType="string" resultMap="GithubUserBaseMap">
+        SELECT
+            id,
+            login_username,
+            github_id,
+            avatar_url,
+            node_id
+        FROM t_github_user
+        WHERE id = #{id}
+    </select>
+
+</mapper>
