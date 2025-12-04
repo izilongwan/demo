@@ -1,6 +1,7 @@
 package com.demo.security;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Objects;
 
 import javax.servlet.FilterChain;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.demo.domain.entity.GithubUser;
+import com.demo.util.SecurityUtils;
 import com.mico.app.common.domain.vo.RVO;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -35,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String jwt = resolveToken(request);
 
-        if (jwt == null || jwt.isEmpty()) {
+        if (!StringUtils.hasText(jwt)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,8 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.parseToken(jwt);
             String username = claims.getSubject();
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User principal = new User(username, "N/A", java.util.Collections.emptyList());
+            if (Objects.nonNull(username) && Objects.isNull(SecurityUtils.getAuthentication())) {
+                User principal = new User(username, "N/A", Collections.emptyList());
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         principal, null, principal.getAuthorities());
 

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +38,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public Map<String, Object> me(Authentication authentication) {
-        if (authentication == null) {
+        if (Objects.isNull(authentication)) {
             return Collections.emptyMap();
         }
 
@@ -53,7 +54,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public Map<String, String> refresh(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refresh_token");
-        if (refreshToken == null || refreshToken.isEmpty()) {
+        if (!StringUtils.hasText(refreshToken)) {
             throw ExceptionVO.error("refresh_token is required");
         }
 
