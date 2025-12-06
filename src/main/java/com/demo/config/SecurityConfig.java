@@ -25,6 +25,10 @@ public class SecurityConfig {
     @Value("${security.jwt.refresh-expiration-millis:604800000}")
     private long refreshExpirationMillis;
 
+    // 从配置文件读取白名单路径
+    @Value("${security.whitelist}")
+    private String[] whitelist;
+
     @Bean
     public JwtUtil jwtUtil() {
         return new JwtUtil(jwtSecret, accessExpirationMillis, refreshExpirationMillis);
@@ -38,14 +42,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter,
             JwtUtil jwtUtil, GithubUserService githubUserService) throws Exception {
-        http.csrf()
-                .disable()
+
+        http.csrf().disable()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/oauth/**", "/auth/refresh", "/login/oauth2/**", "/v2/api-docs", "/v3/api-docs/**",
-                    "/swagger-resources/**", "/swagger-ui.html", "/swagger-ui/**", "/webjars/**")
+                .antMatchers(whitelist)
                 .permitAll()
                 .anyRequest()
                 .authenticated()

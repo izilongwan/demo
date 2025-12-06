@@ -45,6 +45,11 @@ jetcache:
         maxTotal: 20
 
 web-config:
+  webmvc:
+    format-param: format
   result-body:
     base-package: com.demo
     path: /oauth/**
+
+security:
+  whitelist: "/oauth/**,/auth/refresh,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**"
