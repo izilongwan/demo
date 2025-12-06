@@ -61,7 +61,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             userAttr.put("id", user.getId());
             Map<String, String> tokens = jwtUtil.generateAccessAndRefreshToken(username, userAttr, 0L, 0L);
-            RVO<Map<String, String>> data = RVO.success(tokens, -1L, -1L);
+            RVO<Map<String, String>> data = RVO.success(tokens);
 
             response.setContentType("application/json;charset=UTF-8");
             new ObjectMapper().writeValue(response.getWriter(), data);
