@@ -1,7 +1,5 @@
 package com.demo.controller;
 
-import java.io.IOException;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,8 +18,8 @@ public class FileController {
     @Resource
     FileService fileService;
 
-    @GetMapping("/stream/{path}")
-    public void donwloadStream(@PathVariable String path, HttpServletResponse response) throws IOException {
-        fileService.donwloadStream(path, response);
+    @GetMapping("/stream/download/{path}")
+    public void downloadStream(@PathVariable String path, HttpServletResponse response) {
+        fileService.downloadStream(path, response);
     }
 }

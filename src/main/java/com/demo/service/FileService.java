@@ -1,5 +1,7 @@
 package com.demo.service;
 
+import javax.servlet.http.HttpServletResponse;
+
 public interface FileService {
-    void donwloadStream(String path, javax.servlet.http.HttpServletResponse response) throws java.io.IOException;
+    void downloadStream(String path, HttpServletResponse response);
 }
