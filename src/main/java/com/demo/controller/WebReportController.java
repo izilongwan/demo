@@ -1,5 +1,7 @@
 package com.demo.controller;
 
+import java.util.Optional;
+
 import javax.annotation.Resource;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +28,9 @@ public class WebReportController {
 
     @PostMapping("list/{pageNum}/{pageSize}")
     public Page<WebReport> getList(@PathVariable Integer pageNum, @PathVariable Integer pageSize,
-            @RequestBody WebReport webReport) {
-        return webReportService.getList(pageNum, pageSize, webReport);
+            @RequestBody(required = false) WebReport webReport) {
+        return webReportService.getList(pageNum, pageSize,
+                Optional.ofNullable(webReport).orElse(WebReport.builder().build()));
     }
 
     @GetMapping("detail/{id}")
