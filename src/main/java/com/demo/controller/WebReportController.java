@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,11 @@ public class WebReportController {
     @GetMapping("detail/{id}")
     public WebReport detail(@PathVariable String id) {
         return webReportService.getById(id);
+    }
+
+    @DeleteMapping("delete/{id}")
+    public boolean delete(@PathVariable String id) {
+        return webReportService.removeById(id);
     }
 
 }

@@ -9,7 +9,15 @@ spring:
     username: root
     password: roottoor
   jackson:
+    default-property-inclusion: NON_NULL
     date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+      adjust-dates-to-context-time-zone: true
 
 mybatis-plus:
   type-aliases-package: com.demo.domain
@@ -52,4 +60,4 @@ web-config:
     path: /oauth/**
 
 security:
-  whitelist: "/oauth/**,/auth/refresh,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**"
+  whitelist: "/oauth/**,/auth/refresh,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**,/webreport/**"

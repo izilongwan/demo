@@ -29,6 +29,7 @@ public class WebReportImpl extends
                                                 WebReport::getCreateTime, webReport.getCreateTime())
                                 .like(Objects.nonNull(webReport.getId()),
                                                 WebReport::getId, webReport.getId())
+                                .orderByDesc(WebReport::getCreateTime)
                                 .page(page);
         }
 }
