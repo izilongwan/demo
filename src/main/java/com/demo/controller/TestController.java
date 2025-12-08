@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alicp.jetcache.anno.Cached;
 import com.demo.annotation.BarAnno;
 import com.demo.annotation.CurrentUserAnno;
 import com.demo.domain.entity.Car;
@@ -50,6 +51,7 @@ public class TestController {
 
     @ApiOperationSupport(author = "lee")
     @GetMapping("entity")
+    @Cached(name = "test.entity:", key = "'fixed'", expire = 600)
     public Car entity() {
         return Car.builder().name("Lee").build();
     }
@@ -114,6 +116,7 @@ public class TestController {
     }
 
     @GetMapping("car")
+    @Cached(name = "test.car:", key = "#carEnum != null ? #carEnum.name() : '*'", expire = 600)
     public CarVO[] car(@RequestParam(required = false) CarEnum carEnum) {
         return buildCarVO(
                 Optional

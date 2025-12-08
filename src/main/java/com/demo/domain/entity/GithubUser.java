@@ -1,24 +1,24 @@
 package com.demo.domain.entity;
 
-import java.time.LocalDateTime;
-
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.mico.app.database.entity.Base;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @TableName("t_github_user")
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GithubUser {
+@EqualsAndHashCode(callSuper = true)
+public class GithubUser extends Base {
 
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
@@ -34,10 +34,4 @@ public class GithubUser {
 
     @TableField("node_id")
     private String nodeId;
-
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
 }

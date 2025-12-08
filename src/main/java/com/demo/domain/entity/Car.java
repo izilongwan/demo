@@ -1,5 +1,6 @@
 package com.demo.domain.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
@@ -17,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Car {
+public class Car implements Serializable {
     Integer id;
 
     @ApiModelProperty("名称")

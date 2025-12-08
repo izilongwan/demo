@@ -61,3 +61,7 @@ web-config:
 
 security:
   whitelist: "/oauth/**,/auth/refresh,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**,/webreport/**"
+
+github:
+  authorization-url: http://localhost:9000/oauth2/authorization/github
+  front-redirect-url: http://localhost:8888/#/test

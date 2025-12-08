@@ -1,5 +1,7 @@
 package com.demo.config;
 
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +10,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.demo.security.CustomAccessDeniedHandler;
+import com.demo.security.CustomAuthenticationEntryPoint;
 import com.demo.security.JwtAuthenticationFilter;
 import com.demo.security.JwtUtil;
 import com.demo.security.OAuth2LoginSuccessHandler;
@@ -39,9 +43,21 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtUtil);
     }
 
+    @Resource
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Resource
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    @Bean
+    OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler(JwtUtil jwtUtil, GithubUserService githubUserService) {
+        return new OAuth2LoginSuccessHandler(jwtUtil, githubUserService);
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter,
-            JwtUtil jwtUtil, GithubUserService githubUserService) throws Exception {
+            JwtUtil jwtUtil, GithubUserService githubUserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler)
+            throws Exception {
 
         http.csrf().disable()
                 .sessionManagement()
@@ -53,8 +69,13 @@ public class SecurityConfig {
                 .anyRequest()
                 .authenticated()
                 .and()
+                // ↓ 添加认证异常处理
+                .exceptionHandling()
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler)
+                .and()
                 .oauth2Login()
-                .successHandler(new OAuth2LoginSuccessHandler(jwtUtil, githubUserService));
+                .successHandler(oAuth2LoginSuccessHandler);
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

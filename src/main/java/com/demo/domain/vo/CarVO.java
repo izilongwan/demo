@@ -1,5 +1,7 @@
 package com.demo.domain.vo;
 
+import java.io.Serializable;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -17,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CarVO {
+public class CarVO implements Serializable {
     Integer id;
     @NotBlank
     String name;

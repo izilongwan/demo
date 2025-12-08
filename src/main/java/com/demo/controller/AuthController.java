@@ -1,9 +1,12 @@
 package com.demo.controller;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
@@ -11,8 +14,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alicp.jetcache.anno.Cached;
+import com.alicp.jetcache.anno.CreateCache;
 import com.demo.domain.entity.GithubUser;
 import com.demo.mapper.GithubUserMapper;
 import com.demo.security.JwtUtil;
@@ -37,18 +43,16 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public Map<String, Object> me(Authentication authentication) {
+    @Cached(name = "auth.me:", key = "#authentication?.getName()", expire = 300)
+    public GithubUser me(Authentication authentication) {
         if (Objects.isNull(authentication)) {
-            return Collections.emptyMap();
+            return GithubUser.builder().build();
         }
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("username", authentication.getName());
-
         GithubUser user = (GithubUser) authentication.getDetails();
-        map.putAll(BeanUtil.beanToMap(user));
+        GithubUser githubUser = githubUserMapper.selectById(user.getId());
 
-        return map;
+        return githubUser;
     }
 
     @PostMapping("/refresh")
@@ -71,5 +75,15 @@ public class AuthController {
         Map<String, String> result = new HashMap<>();
         result.put("access_token", newAccessToken);
         return result;
+    }
+
+    @GetMapping("/set-redirect")
+    public Boolean setSessionRedirectUrl(HttpServletRequest request, @RequestParam String redirectUrl) {
+        HttpSession session = request.getSession();
+        session.setAttribute(GithubUserService.REDIRECT_URL_KEY, redirectUrl);
+
+        return Optional.ofNullable(session.getAttribute(GithubUserService.REDIRECT_URL_KEY))
+                .map(Objects::isNull)
+                .orElse(false);
     }
 }
