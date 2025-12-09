@@ -60,7 +60,7 @@ web-config:
     path: /oauth/**
 
 security:
-  whitelist: "/oauth/**,/auth/refresh,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**,/webreport/**"
+  whitelist: "/oauth/**,/auth/refresh,/auth/o/**,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**"
 
 github:
   authorization-url: http://localhost:9000/oauth2/authorization/github

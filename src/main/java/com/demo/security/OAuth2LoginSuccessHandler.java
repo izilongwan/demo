@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,8 +46,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Map<String, Object> attributes = oAuth2User.getAttributes();
             String username = String.valueOf(attributes.getOrDefault("login", "github-user"));
 
-            Map<String, Object> userAttr = MapUtil.getAny(attributes, "avatar_url");
+            Map<String, Object> userAttr = MapUtil.getAny(attributes, "node_id", "avatar_url");
             userAttr.put("login_username", username);
+            userAttr.put("github_id", attributes.get("id"));
 
             GithubUser user = new QueryChainWrapper<GithubUser>(githubUserService.getBaseMapper())
                     .allEq(userAttr, true)
@@ -72,10 +74,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     })
                     .map(Object::toString)
                     .orElse(frontRedirectUrl);
-            Map<String, String> tokens = jwtUtil.generateAccessAndRefreshToken(username, userAttr, 0L, 0L);
+            Map<String, Object> tokenExtrInfo = MapUtil.getAny(userAttr, "id", "login_username", "avatar_url");
+            Map<String, String> tokens = jwtUtil.generateAccessAndRefreshToken(username, tokenExtrInfo, 0L, 0L);
+            String tokenParams = tokens.entrySet()
+                    .stream()
+                    .map(o -> String.format("%s=%s", o.getKey(), o.getValue()))
+                    .collect(Collectors.joining("&"));
             // 将 token 作为 URL 参数返回
-            String finalUrl = redirectUrl + (redirectUrl.contains("?") ? "&" : "?") + "token="
-                    + JSONObject.toJSONString(tokens);
+            String finalUrl = redirectUrl + (redirectUrl.contains("?") ? "&" : "?_=_&") + tokenParams;
 
             response.sendRedirect(finalUrl);
             // RVO<Map<String, String>> data = RVO.success(tokens);

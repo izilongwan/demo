@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alicp.jetcache.anno.Cached;
-import com.alicp.jetcache.anno.CreateCache;
 import com.demo.domain.entity.GithubUser;
 import com.demo.mapper.GithubUserMapper;
 import com.demo.security.JwtUtil;
@@ -55,7 +54,7 @@ public class AuthController {
         return githubUser;
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("o/refresh/token")
     public Map<String, String> refresh(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refresh_token");
         if (!StringUtils.hasText(refreshToken)) {
@@ -77,7 +76,7 @@ public class AuthController {
         return result;
     }
 
-    @GetMapping("/set-redirect")
+    @GetMapping("o/set-redirect-url")
     public Boolean setSessionRedirectUrl(HttpServletRequest request, @RequestParam String redirectUrl) {
         HttpSession session = request.getSession();
         session.setAttribute(GithubUserService.REDIRECT_URL_KEY, redirectUrl);
