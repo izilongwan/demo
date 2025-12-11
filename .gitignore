@@ -39,3 +39,5 @@ logs
 ### VS Code ###
 .vscode/
 src/main/resources/application-prod.yml
+src/**.class
+bin/**

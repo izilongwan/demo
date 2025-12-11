@@ -3,6 +3,7 @@ package com.demo.domain.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.mico.app.database.entity.Base;
 
@@ -34,4 +35,10 @@ public class GithubUser extends Base {
 
     @TableField("node_id")
     private String nodeId;
+
+    /**
+     * * 逻辑删除字段
+     */
+    @TableLogic
+    Integer deleted;
 }
