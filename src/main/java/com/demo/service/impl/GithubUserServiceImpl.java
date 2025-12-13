@@ -17,7 +17,7 @@ public class GithubUserServiceImpl extends ServiceImpl<GithubUserMapper, GithubU
         this.githubUserMapper = githubUserMapper;
     }
 
-    public GithubUser getGithubUserById(String id) {
+    public GithubUser getGithubUserById(Long id) {
         return new LambdaQueryChainWrapper<GithubUser>(githubUserMapper)
                 .select(GithubUser::getId,
                         GithubUser::getLoginUsername,

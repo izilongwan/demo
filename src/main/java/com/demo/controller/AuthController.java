@@ -1,14 +1,20 @@
 package com.demo.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +28,7 @@ import com.demo.domain.entity.GithubUser;
 import com.demo.mapper.GithubUserMapper;
 import com.demo.security.JwtUtil;
 import com.demo.service.GithubUserService;
+import com.demo.util.AuthorityUtils;
 import com.mico.app.common.domain.vo.ExceptionVO;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -34,6 +41,9 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final GithubUserMapper githubUserMapper;
     private final GithubUserService githubUserService;
+
+    @Value("${github.authorization-url}")
+    private String githubAuthorizationUrl;
 
     public AuthController(JwtUtil jwtUtil, GithubUserMapper githubUserMapper, GithubUserService githubUserService) {
         this.jwtUtil = jwtUtil;
@@ -50,29 +60,39 @@ public class AuthController {
 
         GithubUser user = (GithubUser) authentication.getDetails();
         GithubUser githubUser = githubUserMapper.selectById(user.getId());
-
+        List<String> authorities = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        githubUser.setAuthorities(authorities);
         return githubUser;
     }
 
     @PostMapping("o/refresh/token")
     public Map<String, String> refresh(@RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refresh_token");
+        String refreshToken = body.get(AuthorityUtils.REFRESH_TOKEN);
         if (!StringUtils.hasText(refreshToken)) {
-            throw ExceptionVO.error("refresh_token is required");
+            throw ExceptionVO.error(AuthorityUtils.REFRESH_TOKEN + " is required");
         }
 
         Claims claims = jwtUtil.parseToken(refreshToken);
         String username = claims.getSubject();
-        String id = (String) claims.get("id");
+        Long id = (Long) claims.get(AuthorityUtils.USER_ID_FIELD);
         GithubUser githubUser = githubUserService.getGithubUserById(id);
 
         if (Objects.isNull(githubUser)) {
-            throw ExceptionVO.error("Invalid refresh_token: user not found");
+            ExceptionVO evo = ExceptionVO.error(githubAuthorizationUrl,
+                    "Invalid " + AuthorityUtils.REFRESH_TOKEN + ": user not found",
+                    HttpServletResponse.SC_UNAUTHORIZED);
+            evo.setStatus(HttpStatus.UNAUTHORIZED);
+            throw evo;
         }
+        Map<String, Object> extraInfo = BeanUtil.beanToMap(githubUser, true, true);
+        extraInfo.put(AuthorityUtils.AUTHORITIES_KEY, claims.get(AuthorityUtils.AUTHORITIES_KEY));
         // 这里使用与默认相同的过期时间重新生成一个新的 access_token
-        String newAccessToken = jwtUtil.generateToken(username, BeanUtil.beanToMap(githubUser, true, true));
+        String newAccessToken = jwtUtil.generateToken(username, extraInfo);
         Map<String, String> result = new HashMap<>();
-        result.put("access_token", newAccessToken);
+        result.put(AuthorityUtils.ACCESS_TOKEN, newAccessToken);
         return result;
     }
 
@@ -82,7 +102,7 @@ public class AuthController {
         session.setAttribute(GithubUserService.REDIRECT_URL_KEY, redirectUrl);
 
         return Optional.ofNullable(session.getAttribute(GithubUserService.REDIRECT_URL_KEY))
-                .map(Objects::isNull)
+                .map(Objects::nonNull)
                 .orElse(false);
     }
 }

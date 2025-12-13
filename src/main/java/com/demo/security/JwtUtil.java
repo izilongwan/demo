@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.demo.util.AuthorityUtils;
+
 import cn.hutool.core.map.MapUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -55,11 +57,11 @@ public class JwtUtil {
         long accessExp = accessExpirationMillis > 0 ? accessExpirationMillis : this.accessExpirationMillis;
         long refreshExp = refreshExpirationMillis > 0 ? refreshExpirationMillis : this.refreshExpirationMillis;
         String accessToken = generateToken(subject, extraClaims, accessExp);
-        Map<String, Object> refreshExtra = MapUtil.getAny(extraClaims, "id");
+        Map<String, Object> refreshExtra = MapUtil.getAny(extraClaims, "id", AuthorityUtils.AUTHORITIES_KEY);
         String refreshToken = generateToken(subject, refreshExtra, refreshExp);
         Map<String, String> map = new HashMap<>();
-        map.put("access_token", accessToken);
-        map.put("refresh_token", refreshToken);
+        map.put(AuthorityUtils.ACCESS_TOKEN, accessToken);
+        map.put(AuthorityUtils.REFRESH_TOKEN, refreshToken);
         return map;
     }
 

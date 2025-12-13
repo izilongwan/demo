@@ -1,5 +1,7 @@
 package com.demo.domain.entity;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -20,9 +22,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class GithubUser extends Base {
-
-    @TableId(value = "id", type = IdType.ASSIGN_UUID)
-    private String id;
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
 
     @TableField("github_id")
     private Long githubId;
@@ -35,6 +36,9 @@ public class GithubUser extends Base {
 
     @TableField("node_id")
     private String nodeId;
+
+    @TableField(exist = false)
+    private List<String> authorities;
 
     /**
      * * 逻辑删除字段
