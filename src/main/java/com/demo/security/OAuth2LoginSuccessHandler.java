@@ -113,7 +113,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         try {
             // 调用API获取用户权限数据
             Map<String, Object> paramMap = Collections.singletonMap(AuthorityUtils.USER_ID_FIELD, userId);
-            ApiParamDTO apiParamDTO = new ApiParamDTO(AuthorityUtils.GET_GITHUB_RIGHTS_API, paramMap, null, null);
+            ApiParamDTO apiParamDTO = ApiParamDTO.builder()
+                    .apiCode(AuthorityUtils.GET_GITHUB_RIGHTS_API)
+                    .param(paramMap)
+                    .build();
             List<Map<String, Object>> permissionData = apiCodeService.execSqlResponseList(apiParamDTO);
 
             if (permissionData == null || permissionData.isEmpty()) {

@@ -57,7 +57,8 @@ public class JwtUtil {
         long accessExp = accessExpirationMillis > 0 ? accessExpirationMillis : this.accessExpirationMillis;
         long refreshExp = refreshExpirationMillis > 0 ? refreshExpirationMillis : this.refreshExpirationMillis;
         String accessToken = generateToken(subject, extraClaims, accessExp);
-        Map<String, Object> refreshExtra = MapUtil.getAny(extraClaims, "id", AuthorityUtils.AUTHORITIES_KEY);
+        Map<String, Object> refreshExtra = MapUtil.getAny(extraClaims, AuthorityUtils.USER_ID_FIELD,
+                AuthorityUtils.AUTHORITIES_KEY);
         String refreshToken = generateToken(subject, refreshExtra, refreshExp);
         Map<String, String> map = new HashMap<>();
         map.put(AuthorityUtils.ACCESS_TOKEN, accessToken);
