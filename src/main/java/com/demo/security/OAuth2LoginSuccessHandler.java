@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
@@ -32,6 +33,7 @@ import com.mico.app.client.domain.dto.ApiParamDTO;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 
+@Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
@@ -109,7 +111,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
      * 获取用户权限列表
      * 从数据库查询用户的角色和权限，并转换为GrantedAuthority列表
      */
-    private List<String> getUserAuthorities(Long userId) {
+    public List<String> getUserAuthorities(Long userId) {
         try {
             // 调用API获取用户权限数据
             Map<String, Object> paramMap = Collections.singletonMap(AuthorityUtils.USER_ID_FIELD, userId);
@@ -117,7 +119,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     .apiCode(AuthorityUtils.GET_GITHUB_RIGHTS_API)
                     .param(paramMap)
                     .build();
-            List<Map<String, Object>> permissionData = apiCodeService.execSqlResponseList(apiParamDTO);
+            List<Map<String, Object>> permissionData = apiCodeService.getList(apiParamDTO);
 
             if (permissionData == null || permissionData.isEmpty()) {
                 // 如果没有权限数据，返回默认角色
