@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alicp.jetcache.anno.Cached;
 import com.demo.domain.entity.GithubUser;
 import com.demo.service.AuthService;
+import com.demo.util.AuthorityUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,9 +32,15 @@ public class AuthController {
         return authService.me(authentication);
     }
 
+    @PostMapping("check-refresh-authoritity")
+    public Map<String, String> checkRefreshAuthoritity(Authentication authentication,
+            @RequestBody Map<String, String> body) {
+        return authService.checkRefreshAuthoritity(authentication, body.get(AuthorityUtils.REFRESH_TOKEN));
+    }
+
     @PostMapping("o/refresh/token")
     public Map<String, String> refresh(@RequestBody Map<String, String> body) {
-        return authService.refresh(body);
+        return authService.refresh(body.get(AuthorityUtils.REFRESH_TOKEN));
     }
 
     @GetMapping("o/set-redirect-url")

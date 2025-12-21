@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 创建包含角色的User对象
                 User principal = new User(username, "N/A", authorities);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        principal, null, authorities);
+                        principal, claims, authorities);
 
                 // 把额外信息放到 details 里，后续控制器可以从 Authentication.getDetails() 取
                 authentication.setDetails(githubUser);
