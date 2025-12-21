@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -21,6 +22,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@FieldNameConstants
 public class GithubUser extends Base {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;

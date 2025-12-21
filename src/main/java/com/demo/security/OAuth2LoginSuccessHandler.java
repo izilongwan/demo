@@ -1,13 +1,9 @@
 package com.demo.security;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -21,14 +17,13 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.demo.domain.entity.GithubUser;
+import com.demo.service.AuthService;
 import com.demo.service.GithubUserService;
 import com.demo.util.AuthorityUtils;
 import com.mico.app.api.code.service.ApiCodeService;
-import com.mico.app.client.domain.dto.ApiParamDTO;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
@@ -39,6 +34,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtUtil jwtUtil;
 
     private final GithubUserService githubUserService;
+
+    @Resource
+    private AuthService authService;
 
     @Value("${github.front-redirect-url}")
     private String frontRedirectUrl;
@@ -89,7 +87,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     .orElse(frontRedirectUrl);
 
             Map<String, Object> tokenExtrInfo = MapUtil.getAny(userAttr, "id", "login_username", "avatar_url");
-            tokenExtrInfo.put(AuthorityUtils.AUTHORITIES_KEY, getUserAuthorities(user.getId()));
+            tokenExtrInfo.put(AuthorityUtils.AUTHORITIES_KEY, authService.getUserAuthorities(user.getId()));
             Map<String, String> tokens = jwtUtil.generateAccessAndRefreshToken(username, tokenExtrInfo, 0L, 0L);
             String tokenParams = tokens.entrySet()
                     .stream()
@@ -104,56 +102,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             // new ObjectMapper().writeValue(response.getWriter(), data);
         } else {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        }
-    }
-
-    /**
-     * 获取用户权限列表
-     * 从数据库查询用户的角色和权限，并转换为GrantedAuthority列表
-     */
-    public List<String> getUserAuthorities(Long userId) {
-        try {
-            // 调用API获取用户权限数据
-            Map<String, Object> paramMap = Collections.singletonMap(AuthorityUtils.USER_ID_FIELD, userId);
-            ApiParamDTO apiParamDTO = ApiParamDTO.builder()
-                    .apiCode(AuthorityUtils.GET_GITHUB_RIGHTS_API)
-                    .param(paramMap)
-                    .build();
-            List<Map<String, Object>> permissionData = apiCodeService.getList(apiParamDTO);
-
-            if (permissionData == null || permissionData.isEmpty()) {
-                // 如果没有权限数据，返回默认角色
-                return Collections.singletonList(AuthorityUtils.DEFAULT_ROLE_USER);
-            }
-
-            // 使用Set去重并收集所有权限和角色
-            Set<String> authorities = new HashSet<>();
-
-            // 处理权限数据
-            for (Map<String, Object> data : permissionData) {
-                // 添加权限
-                String permissionName = (String) data.get(AuthorityUtils.PERMISSION_NAME_FIELD);
-                if (StringUtils.hasLength(permissionName)) {
-                    authorities.add(permissionName.trim());
-                }
-
-                // 添加角色
-                String roleName = (String) data.get(AuthorityUtils.ROLE_NAME_FIELD);
-                if (StringUtils.hasLength(roleName)) {
-                    authorities.add(roleName.trim());
-                }
-            }
-
-            // 确保所有用户至少有USER角色
-            authorities.add(AuthorityUtils.DEFAULT_ROLE_USER);
-
-            // 转换为GrantedAuthority对象并排序（保证一致性）
-            return authorities.stream()
-                    .collect(Collectors.toList());
-
-        } catch (Exception e) {
-            // 权限查询失败时返回默认角色，避免登录失败
-            return Collections.singletonList(AuthorityUtils.DEFAULT_ROLE_USER);
         }
     }
 }
