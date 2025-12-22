@@ -1,11 +1,10 @@
 package com.demo.service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,15 +20,18 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.Cached;
 import com.demo.domain.entity.GithubUser;
+import com.demo.domain.vo.AuthortityTokenVO;
 import com.demo.mapper.GithubUserMapper;
 import com.demo.security.JwtUtil;
 import com.demo.util.AuthorityUtils;
@@ -40,6 +42,7 @@ import com.mico.app.common.domain.vo.ExceptionVO;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -73,70 +76,68 @@ public class AuthServiceImpl implements AuthService {
         GithubUser user = (GithubUser) authentication.getDetails();
         GithubUser githubUser = githubUserMapper.selectById(user.getId());
 
-        List<String> newAuthorities = getUserAuthorities(githubUser.getId());
-
         List<String> authorities = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        boolean authoritityHasChange = checkAuthoritityChange(newAuthorities, authorities);
-        if (authoritityHasChange) {
-            Map<String, Object> userAttr = BeanUtil.beanToMap(githubUser, true, true);
-            Map<String, Object> tokenExtrInfo = MapUtil.getAny(userAttr, "id", "login_username", "avatar_url");
-            tokenExtrInfo.put(AuthorityUtils.AUTHORITIES_KEY, newAuthorities);
-
-            if (authentication.getPrincipal() instanceof Jwt) {
-                Jwt jwt = (Jwt) authentication.getPrincipal();
-                Instant expiresAt = jwt.getExpiresAt(); // 这里就是过期时间
-                System.out.println("过期时间: " + expiresAt);
-            }
-            Map<String, String> tokens = jwtUtil.generateAccessAndRefreshToken(githubUser.getLoginUsername(),
-                    tokenExtrInfo, 0L, 0L);
-        }
-
-        githubUser.setAuthorities(newAuthorities);
+        githubUser.setAuthorities(authorities);
         return githubUser;
     }
 
-    public Map<String, String> checkRefreshAuthoritity(Authentication authentication, String refreshToken) {
-        if (Objects.isNull(authentication)) {
+    @Override
+    public AuthortityTokenVO refreshAuthorityToken(String refreshToken) {
+        GithubUser githubUser = parseRefreshToken(refreshToken);
+
+        List<String> newAuthorities = getUserAuthorities(githubUser.getId());
+        List<String> authorities = githubUser.getAuthorities();
+
+        boolean authoritityHasChange = checkAuthoritityChange(newAuthorities, authorities);
+        if (!authoritityHasChange) {
             return null;
         }
 
-        GithubUser user = (GithubUser) authentication.getDetails();
-        GithubUser githubUser = githubUserMapper.selectById(user.getId());
-        List<String> newAuthorities = getUserAuthorities(githubUser.getId());
+        Map<String, Object> userAttr = BeanUtil.beanToMap(githubUser, true, true);
+        Map<String, Object> tokenExtrInfo = MapUtil.getAny(userAttr, GithubUser.Fields.id, "login_username",
+                "avatar_url");
+        tokenExtrInfo.put(AuthorityUtils.AUTHORITIES_KEY, newAuthorities);
 
-        List<String> authorities = authentication.getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        boolean authoritityHasChange = checkAuthoritityChange(newAuthorities, authorities);
-        if (authoritityHasChange) {
-            Map<String, Object> userAttr = BeanUtil.beanToMap(githubUser, true, true);
-            Map<String, Object> tokenExtrInfo = MapUtil.getAny(userAttr, "id", "login_username", "avatar_url");
-            tokenExtrInfo.put(AuthorityUtils.AUTHORITIES_KEY, newAuthorities);
-
-            long diffSecond = 0;
-            Integer expSecond = Optional.ofNullable(jwtUtil.parseToken(refreshToken))
-                    .map(o -> (Map<String, Object>) o)
-                    .map(o -> o.get("exp"))
-                    .map(o -> ((int) o))
-                    .orElse(0);
-            System.out.println(GithubUser.Fields.loginUsername);
-            if (expSecond > 0) {
-                log.debug("过期时间: " + LocalDateTime.ofEpochSecond(expSecond, 0, ZoneOffset.ofHours(8))
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                diffSecond = expSecond - LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
-                authService.invalidMe(authentication);
-                return jwtUtil.generateAccessAndRefreshToken(githubUser.getLoginUsername(),
-                        tokenExtrInfo, 0, diffSecond * 1000);
-            }
+        long diffSecond = 0;
+        Integer expSecond = Optional.ofNullable(jwtUtil.parseToken(refreshToken))
+                .map(o -> (Map<String, Object>) o)
+                .map(o -> o.get("exp"))
+                .map(o -> ((int) o))
+                .orElse(0);
+        if (expSecond <= 0) {
+            return null;
         }
 
-        return null;
+        log.debug("过期时间: " + LocalDateTime.ofEpochSecond(expSecond, 0, ZoneOffset.ofHours(8))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        diffSecond = expSecond - LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
+        authService.invalidMe(buildAuthentication(authorities, githubUser.getLoginUsername()));
+        // 重新生成新的 access_token 和 refresh_token
+        AuthortityTokenVO authortityTokenVO = jwtUtil.generateAccessAndRefreshToken(
+                githubUser.getLoginUsername(),
+                tokenExtrInfo, 0, diffSecond * 1000);
+
+        authortityTokenVO.setAuthorities(newAuthorities);
+
+        return authortityTokenVO;
+    }
+
+    @Override
+    public UsernamePasswordAuthenticationToken buildAuthentication(List<String> authoritiesList, String username) {
+        List<GrantedAuthority> authorities = authoritiesList.stream()
+                .map(SimpleGrantedAuthority::new)
+                .sorted(Comparator.comparing(SimpleGrantedAuthority::getAuthority))
+                .collect(Collectors.toList());
+
+        // 创建包含角色的User对象
+        User principal = new User(username, "N/A", authorities);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                principal, null, authorities);
+        return authentication;
     }
 
     @CacheInvalidate(name = "auth.me:", key = "#authentication?.getName()")
@@ -211,30 +212,44 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Map<String, String> refresh(String refreshToken) {
-        if (!StringUtils.hasText(refreshToken)) {
-            throw ExceptionVO.error(AuthorityUtils.REFRESH_TOKEN + " is required");
-        }
+    public AuthortityTokenVO refreshAccessToken(String refreshToken) {
+        try {
+            GithubUser githubUser = parseRefreshToken(refreshToken);
+            String username = githubUser.getLoginUsername();
 
-        Claims claims = jwtUtil.parseToken(refreshToken);
-        String username = claims.getSubject();
-        Long id = (Long) claims.get(AuthorityUtils.USER_ID_FIELD);
-        GithubUser githubUser = githubUserService.getGithubUserById(id);
+            Map<String, Object> extraInfo = BeanUtil.beanToMap(githubUser, true, true);
+            extraInfo.put(AuthorityUtils.AUTHORITIES_KEY, githubUser.getAuthorities());
+            // 这里使用与默认相同的过期时间重新生成一个新的 access_token
+            String newAccessToken = jwtUtil.generateToken(username, extraInfo);
 
-        if (Objects.isNull(githubUser)) {
+            return AuthortityTokenVO.builder()
+                    .accessToken(newAccessToken)
+                    .build();
+        } catch (ExpiredJwtException e) {
             ExceptionVO evo = ExceptionVO.error(githubAuthorizationUrl,
-                    "Invalid " + AuthorityUtils.REFRESH_TOKEN + ": user not found",
+                    "JWT token has expired " + e.getMessage(),
                     HttpServletResponse.SC_UNAUTHORIZED);
             evo.setStatus(HttpStatus.UNAUTHORIZED);
             throw evo;
         }
-        Map<String, Object> extraInfo = BeanUtil.beanToMap(githubUser, true, true);
-        extraInfo.put(AuthorityUtils.AUTHORITIES_KEY, claims.get(AuthorityUtils.AUTHORITIES_KEY));
-        // 这里使用与默认相同的过期时间重新生成一个新的 access_token
-        String newAccessToken = jwtUtil.generateToken(username, extraInfo);
-        Map<String, String> result = new HashMap<>();
-        result.put(AuthorityUtils.ACCESS_TOKEN, newAccessToken);
-        return result;
+    }
+
+    public GithubUser parseRefreshToken(String refreshToken) {
+        Claims claims = jwtUtil.parseToken(refreshToken);
+        Long id = (Long) claims.get(AuthorityUtils.USER_ID_FIELD);
+        GithubUser githubUser = githubUserService.getGithubUserById(id);
+
+        if (Objects.nonNull(githubUser)) {
+            githubUser.setAuthorities(
+                    (List<String>) claims.get(AuthorityUtils.AUTHORITIES_KEY));
+            return githubUser;
+        }
+        ExceptionVO evo = ExceptionVO.error(githubAuthorizationUrl,
+                "Invalid " + AuthorityUtils.REFRESH_TOKEN + ": user not found",
+                HttpServletResponse.SC_UNAUTHORIZED);
+        evo.setStatus(HttpStatus.UNAUTHORIZED);
+        throw evo;
+
     }
 
     @Override

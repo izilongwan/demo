@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.demo.domain.entity.GithubUser;
+import com.demo.domain.vo.AuthortityTokenVO;
 import com.demo.service.AuthService;
 import com.demo.service.GithubUserService;
 import com.demo.util.AuthorityUtils;
@@ -88,11 +88,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             Map<String, Object> tokenExtrInfo = MapUtil.getAny(userAttr, "id", "login_username", "avatar_url");
             tokenExtrInfo.put(AuthorityUtils.AUTHORITIES_KEY, authService.getUserAuthorities(user.getId()));
-            Map<String, String> tokens = jwtUtil.generateAccessAndRefreshToken(username, tokenExtrInfo, 0L, 0L);
-            String tokenParams = tokens.entrySet()
-                    .stream()
-                    .map(o -> String.format("%s=%s", o.getKey(), o.getValue()))
-                    .collect(Collectors.joining("&"));
+            AuthortityTokenVO authortityTokenVO = jwtUtil.generateAccessAndRefreshToken(
+                    username,
+                    tokenExtrInfo,
+                    0L,
+                    0L);
+            String tokenParams = String.format("%s=%s&%s=%s", AuthorityUtils.ACCESS_TOKEN,
+                    authortityTokenVO.getAccessToken(), AuthorityUtils.REFRESH_TOKEN,
+                    authortityTokenVO.getRefreshToken());
             // 将 token 作为 URL 参数返回
             String finalUrl = redirectUrl + (redirectUrl.contains("?") ? "&" : "?_=_&") + tokenParams;
 

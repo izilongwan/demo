@@ -1,11 +1,8 @@
 package com.demo.security;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -13,14 +10,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.demo.domain.entity.GithubUser;
+import com.demo.service.AuthService;
 import com.demo.util.AuthorityUtils;
 import com.demo.util.SecurityUtils;
 import com.mico.app.common.domain.vo.RVO;
@@ -33,9 +28,11 @@ import io.jsonwebtoken.ExpiredJwtException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthService authService) {
         this.jwtUtil = jwtUtil;
+        this.authService = authService;
     }
 
     @Override
@@ -58,15 +55,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 获取用户角色 - 可以从数据库查询或JWT中提取
                 List<String> authoritiesList = (List<String>) claims.get(AuthorityUtils.AUTHORITIES_KEY);
-                List<GrantedAuthority> authorities = authoritiesList.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .sorted(Comparator.comparing(SimpleGrantedAuthority::getAuthority))
-                        .collect(Collectors.toList());
 
                 // 创建包含角色的User对象
-                User principal = new User(username, "N/A", authorities);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        principal, claims, authorities);
+                UsernamePasswordAuthenticationToken authentication = authService.buildAuthentication(authoritiesList,
+                        username);
 
                 // 把额外信息放到 details 里，后续控制器可以从 Authentication.getDetails() 取
                 authentication.setDetails(githubUser);
@@ -107,8 +99,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * - 角色：以"ROLE_"前缀开头，如"ROLE_ADMIN"、"ROLE_USER"
      * - 权限：具体的操作权限，如"USER_READ"、"ADMIN_WRITE"
      */
-    private List<GrantedAuthority> getUserAuthorities(GithubUser githubUser) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        return authorities;
-    }
 }

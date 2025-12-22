@@ -1,9 +1,9 @@
 package com.demo.security;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
+import com.demo.domain.vo.AuthortityTokenVO;
 import com.demo.util.AuthorityUtils;
 
 import cn.hutool.core.map.MapUtil;
@@ -52,18 +52,15 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Map<String, String> generateAccessAndRefreshToken(String subject, Map<String, Object> extraClaims,
-            long accessExpirationMillis, long refreshExpirationMillis) {
+    public AuthortityTokenVO generateAccessAndRefreshToken(String subject, Map<String, Object> extraClaims,
+                    long accessExpirationMillis, long refreshExpirationMillis) {
         long accessExp = accessExpirationMillis > 0 ? accessExpirationMillis : this.accessExpirationMillis;
         long refreshExp = refreshExpirationMillis > 0 ? refreshExpirationMillis : this.refreshExpirationMillis;
         String accessToken = generateToken(subject, extraClaims, accessExp);
         Map<String, Object> refreshExtra = MapUtil.getAny(extraClaims, AuthorityUtils.USER_ID_FIELD,
                 AuthorityUtils.AUTHORITIES_KEY);
         String refreshToken = generateToken(subject, refreshExtra, refreshExp);
-        Map<String, String> map = new HashMap<>();
-        map.put(AuthorityUtils.ACCESS_TOKEN, accessToken);
-        map.put(AuthorityUtils.REFRESH_TOKEN, refreshToken);
-        return map;
+        return AuthortityTokenVO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
     }
 
     public Claims parseToken(String token) {
