@@ -147,6 +147,12 @@ public class AuthServiceImpl implements AuthService {
 
     private boolean checkAuthoritityChange(List<String> newAuthorities, List<String> authorities) {
         boolean hasChange = false;
+
+        if (newAuthorities.size() != authorities.size()) {
+            log.debug("[用户]权限数量发生变化");
+            return true;
+        }
+
         for (int i = 0; i < newAuthorities.size(); i++) {
             if (!newAuthorities.get(i).equals(authorities.get(i))) {
                 hasChange = true;

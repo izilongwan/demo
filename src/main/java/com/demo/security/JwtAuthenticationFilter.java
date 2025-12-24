@@ -19,6 +19,7 @@ import com.demo.service.AuthService;
 import com.demo.util.AuthorityUtils;
 import com.demo.util.SecurityUtils;
 import com.mico.app.common.domain.vo.RVO;
+import com.mico.app.database.util.MicoAppDatabaseThreadLocalUtil;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
@@ -62,6 +63,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 把额外信息放到 details 里，后续控制器可以从 Authentication.getDetails() 取
                 authentication.setDetails(githubUser);
+
+                githubUser.setAuthorities(authoritiesList);
+                githubUser.setUpdateUser(githubUser.getLoginUsername());
+                githubUser.setCreateUser(githubUser.getLoginUsername());
+                MicoAppDatabaseThreadLocalUtil.set(MicoAppDatabaseThreadLocalUtil.SYSTEM_KEY,
+                        BeanUtil.beanToMap(githubUser));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
