@@ -1,7 +1,15 @@
 server:
   port: 9000
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: 'TRRQ!@!#@%@KKJH@#'
+    key-store-type: PKCS12
+    key-alias: tomcat
 
 spring:
+  application:
+    name: demo-app
   profiles:
     active: @profile.active@
   datasource:
@@ -66,5 +74,37 @@ security:
   whitelist: "/oauth/**,/auth/refresh,/auth/o/**,/login/oauth2/**,/v2/api-docs,/v3/api-docs/**,/swagger-resources/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/test/**"
 
 github:
-  authorization-url: http://localhost:9000/oauth2/authorization/github
-  front-redirect-url: http://localhost:8888/#/test
+  authorization-url: https://localhost:9000/oauth2/authorization/github
+  front-redirect-url: https://localhost:8888/#/test
+
+auth:
+  # path:
+  #   /oauth/**,
+  #   /login/**,
+  #   /logout/**,
+  #   /open/**,
+  #   /**/open/**
+  jwt-key: JYrr1238123##@#%@#!@5125313
+
+cors:
+  allowed-mappings: "/**"
+  allowed-origins:
+    - https://website.nima.cc.cd
+    - https://service.nima.cc.cd
+    - https://server.nima.cc.cd
+    - https://app.nima.cc.cd
+    - https://api.nima.cc.cd
+    - https://v.nima.cc.cd
+    - https://localhost:5173
+    - http://localhost:5173
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+    - HEAD
+    - PATCH
+  allowed-headers: "*"
+  allow-credentials: false
+  max-age: 36000

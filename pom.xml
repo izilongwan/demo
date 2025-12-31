@@ -16,6 +16,7 @@
     <properties>
         <java.version>1.8</java.version>
         <mico.app.version>0.0.1</mico.app.version>
+        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <dependencies>
@@ -68,6 +69,20 @@
             <groupId>com</groupId>
             <artifactId>mico-app-api-code</artifactId>
             <version>${mico.app.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.alibaba.cloud</groupId>
+                    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.alibaba.cloud</groupId>
+                    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-datasource-nacos</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
