@@ -1,4 +1,4 @@
-package com.demo.service;
+package com.demo.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -34,6 +34,8 @@ import com.demo.domain.entity.GithubUser;
 import com.demo.domain.vo.AuthortityTokenVO;
 import com.demo.mapper.GithubUserMapper;
 import com.demo.security.JwtUtil;
+import com.demo.service.AuthService;
+import com.demo.service.GithubUserService;
 import com.demo.util.AuthorityUtils;
 import com.mico.app.api.code.service.ApiCodeService;
 import com.mico.app.client.domain.dto.ApiParamDTO;
