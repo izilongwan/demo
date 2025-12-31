@@ -27,8 +27,10 @@ import com.mico.app.api.code.service.ApiCodeService;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
@@ -81,6 +83,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                         String key = GithubUserService.REDIRECT_URL_KEY;
                         Object url = s.getAttribute(key);
                         s.removeAttribute(key);
+                        log.info("[OAuth2LoginSuccessHandler redirectUrl from session]: {}", url);
                         return url;
                     })
                     .map(Object::toString)

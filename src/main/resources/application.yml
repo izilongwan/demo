@@ -106,5 +106,5 @@ cors:
     - HEAD
     - PATCH
   allowed-headers: "*"
-  allow-credentials: false
+  allow-credentials: true
   max-age: 36000
