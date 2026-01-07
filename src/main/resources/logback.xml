@@ -1,39 +1,75 @@
-<?xm1 version="1. B" encoding= "UTF-8"?>
-<configuration xmlns="http://logging.apache.org/log4j/2.0/config">
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
     <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- 定义日志文件路径 -->
+    <property name="LOG_PATH" value="/Users/izilong/Proj3/java-demo/logs" />
+    <property name="LOG_FILE" value="application" />
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%date{HH:mm:ss.SSS} %5level [%t] %logger - %m%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <logger name="ch.qos.logback" level="error">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <!-- 文件输出（按日期滚动） -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE}.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
 
-    <logger name="com.zaxxer" level="error">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <!-- 第三方库日志级别 -->
+    <logger name="ch.qos.logback" level="WARN" />
+    <logger name="com.zaxxer" level="WARN" />
+    <logger name="com.alibaba" level="WARN" />
+    <logger name="com.baomidou" level="WARN" />
+    <logger name="com.netflix" level="WARN" />
 
-    <logger name="com.alibaba" level="error">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <!-- 生产环境配置 -->
+    <springProfile name="prod">
+        <logger name="com" level="INFO" additivity="false">
+            <appender-ref ref="FILE" />
+            <appender-ref ref="CONSOLE" />
+        </logger>
+        <logger name="org.mybatis" level="WARN" />
+        <logger name="org.hibernate" level="WARN" />
+        <logger name="com.baomidou.mybatisplus" level="WARN" />
+        <root level="INFO">
+            <appender-ref ref="FILE" />
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
 
-    <logger name="com.baomidou" level="error">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <springProfile name="frp">
+        <logger name="com" level="INFO" additivity="false">
+            <appender-ref ref="FILE" />
+            <appender-ref ref="CONSOLE" />
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="FILE" />
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
 
-    <logger name="com.netflix" level="error">
-        <appender-ref ref="STDOUT" />
-    </logger>
-
-    <logger name="com" level="debug"
-        additivity="false">
-        <appender-ref ref="STDOUT" />
-    </logger>
-
-    <root level="ERROR">
-        <appender-ref ref="STDOUT" />
-    </root>
+    <!-- 开发环境配置 -->
+    <springProfile name="dev">
+        <logger name="com" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE" />
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
 </configuration>
