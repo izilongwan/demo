@@ -96,6 +96,7 @@ cors:
     - https://api.nima.cc.cd
     - https://v.nima.cc.cd
     - https://localhost:5173
+    - https://127.0.0.1:5173
     - http://localhost:5173
   allowed-methods:
     - GET
@@ -108,3 +109,8 @@ cors:
   allowed-headers: "*"
   allow-credentials: true
   max-age: 36000
+
+api-log:
+  redis-key-prefix: "api_logs:"
+  redis-key-expire-seconds: 172800
+  batch-size: 500
