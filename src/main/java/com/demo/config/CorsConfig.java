@@ -5,12 +5,12 @@ import javax.annotation.Resource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.demo.domain.config.CorsPropertyConfig;
+import com.demo.domain.property.CorsProperty;
 
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
     @Resource
-    CorsPropertyConfig corsPropertyConfig;
+    CorsProperty corsPropertyConfig;
 
     // 这里可以根据需要重写 WebMvcConfigurer 的方法来配置 CORS 策略
     @Override
